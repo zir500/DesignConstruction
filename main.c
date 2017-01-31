@@ -2,7 +2,8 @@
 #include "menu.h"
 #include "CommonFunctions.h"
 #include "LCD.h"
-
+#include "SWT.h"
+#include "LED.h"
 
 void initLCD(){
 	
@@ -18,6 +19,20 @@ void initLCD(){
 	LCD_Clear();
 }
 
+
+void initButtons(){
+	
+  //user button 
+	 RCC->AHB1ENR  |= ((1UL <<  0) );              /* Enable GPIOA clock         */
+
+  GPIOA->MODER    &= ~((3UL << 2*0)  );         /* PA.0 is input              */
+  GPIOA->OSPEEDR  &= ~((3UL << 2*0)  );         /* PA.0 is 50MHz Fast Speed   */
+  GPIOA->OSPEEDR  |=  ((2UL << 2*0)  ); 
+  GPIOA->PUPDR    &= ~((3UL << 2*0)  );         /* PA.0 is no Pull up         */
+	
+  SWT_Init();
+}	
+
 int main(){
 	SystemCoreClockUpdate();                      /* Get Core Clock Frequency   */
   if (SysTick_Config(SystemCoreClock / 1000)) { /* SysTick 1 msec interrupts  */
@@ -26,8 +41,10 @@ int main(){
 	
 	//Initialise
 	initLCD();
+	initButtons();
+	LED_Init();
 	
 	//Run Multimeter
-	openMenu();
+	menu();
 	return 0;
 }

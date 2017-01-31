@@ -32,7 +32,7 @@ void LED_Init (void) {
                        (3UL << 2*12) |
                        (3UL << 2*13) |
                        (3UL << 2*14) |
-                       (3UL << 2*15)  );   /* PD.12..15 is output               */
+                       (3UL << 2*15)  );   /* PD.8..15 is output               */
   GPIOD->MODER    |=  ((1UL << 2* 8) |
                        (1UL << 2* 9) | 
                        (1UL << 2*10) | 
@@ -48,7 +48,7 @@ void LED_Init (void) {
                        (1UL <<   12) |
                        (1UL <<   13) |
                        (1UL <<   14) |
-                       (1UL <<   15)  );   /* PD.12..15 is output Push-Pull     */
+                       (1UL <<   15)  );   /* PD.8..15 is output Push-Pull     */
   GPIOD->OSPEEDR  &= ~((3UL << 2* 8) |
                        (3UL << 2* 9) |
                        (3UL << 2*10) |
@@ -56,7 +56,7 @@ void LED_Init (void) {
                        (3UL << 2*12) |
                        (3UL << 2*13) |
                        (3UL << 2*14) |
-                       (3UL << 2*15)  );   /* PD.12..15 is 50MHz Fast Speed     */
+                       (3UL << 2*15)  );   /* PD.8..15 is 50MHz Fast Speed     */
   GPIOD->OSPEEDR  |=  ((2UL << 2* 8) |
                        (2UL << 2* 9) | 
                        (2UL << 2*10) | 
@@ -72,7 +72,7 @@ void LED_Init (void) {
                        (3UL << 2*12) |
                        (3UL << 2*13) |
                        (3UL << 2*14) |
-                       (3UL << 2*15)  );   /* PD.12..15 is Pull up              */
+                       (3UL << 2*15)  );   /* PD.8..15 is Pull up              */
   GPIOD->PUPDR    |=  ((1UL << 2* 8) |
                        (1UL << 2* 9) | 
                        (1UL << 2*10) | 
