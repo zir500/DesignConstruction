@@ -1,0 +1,13 @@
+--cpu Cortex-M4.fp
+".\flash\lcd.o"
+".\flash\led.o"
+".\flash\swt.o"
+".\flash\commonfunctions.o"
+".\flash\main.o"
+".\flash\menu.o"
+".\flash\startup_stm32f407xx.o"
+".\flash\system_stm32f4xx.o"
+--strict --scatter ".\Flash\Multimeter.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list ".\Listings\Multimeter.map" -o .\Flash\Multimeter.axf
