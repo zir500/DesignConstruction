@@ -1,22 +1,17 @@
 #include "STM32F4xx.h"
-#include "menu.h"
 #include "CommonFunctions.h"
-#include "LCD.h"
+#include "LCD/lcd_driver.h"
 #include "SWT.h"
 #include "LED.h"
+#include "menu.h"
+
+
+#define BUFFER_SIZE 128 //TODO what is this????
 
 void initLCD(){
 	
-	LCD_Initpins();	
-	LCD_DriverOn();
-	
-	Delay(10);
-	LCD_Init();
-
-	LCD_DriverOn();
-	LCD_On(1);
-	Delay(20);
-	LCD_Clear();
+	lcd_init(LCD_LINES_TWO, LCD_CURSOR_OFF, LCD_CBLINK_OFF, BUFFER_SIZE);
+	lcd_clear_display();
 }
 
 
