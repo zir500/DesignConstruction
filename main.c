@@ -4,9 +4,12 @@
 #include "SWT.h"
 #include "LED.h"
 #include "menu.h"
+#include "ADC.h"
 
 
 #define BUFFER_SIZE 128 //TODO what is this????
+
+extern int MULTIMETER_MODE;
 
 void initLCD(){
 	
@@ -38,8 +41,26 @@ int main(){
 	initLCD();
 	initButtons();
 	LED_Init();
+	init_GIPOB();
+	ADC1_init();
 	
 	//Run Multimeter
 	menu();
+	while(1){
+		Delay(500);
+		unsigned int value = read_ADC1();
+		switch(MULTIMETER_MODE){
+			case MODE_VOLTAGE:
+				display_Measure("Voltage", "V", 3*4096/value);
+				break;
+					
+			case MODE_CURRENT:
+				display_Measure("Current", "A", value);
+				break;
+		}
+	}
+	
+	
+	
 	return 0;
 }

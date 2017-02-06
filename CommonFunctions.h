@@ -5,5 +5,8 @@
 	void Delay (uint32_t dlyTicks);
 	int DelayForButton (uint32_t dlyTicks);
 	uint32_t BTN_Get(void);
-
+	void init_GIPOB(void);
+	void outputSignalON(unsigned int Switch);
+  void outputSignalOFF(unsigned int Switch);
+	void waitForRelease(void);
 #endif //__COMMON_FUNCTIONS_H

@@ -7,7 +7,12 @@
 #include "menu.h"
 
 
+
+int MULTIMETER_MODE = MODE_VOLTAGE;
+
+
 //define menu IDs
+#define MENU_EXIT -1
 #define MENU_ID_OPEN 0 
 #define MENU_ID_VOLTAGE 1 
 #define MENU_ID_CURRENT 2 
@@ -24,6 +29,9 @@ void scrollText(char message[], int messageLength){
 }
 
 int openVoltageMenu(){
+	
+	outputSignalON(4U);
+	MULTIMETER_MODE = MODE_VOLTAGE;
 	
 	lcd_clear_display();
 	lcd_write_string("Select options", 0, 0);
@@ -52,9 +60,11 @@ int openVoltageMenu(){
 			break;
 		case 1:
 			selectedMenu = MENU_ID_VOLTAGE_AUTO_RANGE;
+			break;
 		case 8:
-				selectedMenu = MENU_ID_OPEN;
-		break;
+			selectedMenu = MENU_ID_OPEN;
+			outputSignalOFF(4U);
+			break;
 	}
 	
 	return selectedMenu;
@@ -68,6 +78,7 @@ int openMenu(){
 	
 	LED_Out(7);
 	
+	lcd_clear_display();
 	//Top Line
 	lcd_write_string("Select Function", 0, 0);
 	
@@ -98,25 +109,30 @@ int openMenu(){
 			break;
 		
 		case 8:
-			selectedMenu = MENU_ID_OPEN; //GO TO measuerment menu
+			selectedMenu = MENU_EXIT; //GO TO measuerment menu
 			break;
 	}
 	return selectedMenu;
 }
 
+
 void menu(){
 	int selectedMenuID = MENU_ID_OPEN;
 
 	while(1){
-
+		waitForRelease();
 		switch (selectedMenuID) {
+			case MENU_EXIT:
+				return;
+				break;
 			case MENU_ID_OPEN:
 				selectedMenuID = openMenu();
-			
+				break;
 			case MENU_ID_VOLTAGE:
 				//go to Voltage menu
 				LED_Out(1);
 				selectedMenuID = openVoltageMenu();
+				break;
 			case MENU_ID_CURRENT:
 				//got to Current menu 
 				LED_Out(2);
@@ -131,6 +147,6 @@ void menu(){
 			case MENU_ID_VOLTAGE_AUTO_RANGE:
 				//auto range for voltage
 				break;
-		}
+		}	
 	}
 }
