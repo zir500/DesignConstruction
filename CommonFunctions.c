@@ -1,6 +1,7 @@
 #include "STM32F4xx.h"
 #include "CommonFunctions.h"
 #include "SWT.h"
+#include "menu.h"
 
 volatile uint32_t msTicks;                      /* counts 1ms timeTicks       */
 /*----------------------------------------------------------------------------
@@ -65,61 +66,26 @@ void init_GIPOB(){
   RCC->AHB1ENR  |= ((1UL <<  3) );         /* Enable GPIOB clock                */
 
   GPIOB->MODER    &= ~((3UL << 2* 4) |
-                       (3UL << 2* 9) |
-                       (3UL << 2*10) |
-                       (3UL << 2*11) |
-                       (3UL << 2*12) |
-                       (3UL << 2*13) |
-                       (3UL << 2*14) |
-                       (3UL << 2*15)  );   /* PD.8..15 is output               */
+                       (3UL << 2* 5) |
+                       (3UL << 2*7) 	 );   /* PD.4,5,7 is output               */
   GPIOB->MODER    |=  ((1UL << 2* 4) |
-                       (1UL << 2* 9) | 
-                       (1UL << 2*10) | 
-                       (1UL << 2*11) | 
-                       (1UL << 2*12) | 
-                       (1UL << 2*13) | 
-                       (1UL << 2*14) | 
-                       (1UL << 2*15)  ); 
+                       (1UL << 2* 5) | 
+                       (1UL << 2*7) 	 ); 
   GPIOB->OTYPER   &= ~((1UL <<    4) |
-                       (1UL <<    9) |
-                       (1UL <<   10) |
-                       (1UL <<   11) |
-                       (1UL <<   12) |
-                       (1UL <<   13) |
-                       (1UL <<   14) |
-                       (1UL <<   15)  );   /* PD.8..15 is output Push-Pull     */
+                       (1UL <<    5) |
+                       (1UL <<    7)   );   /* PD.4,5,7  is output Push-Pull     */
   GPIOB->OSPEEDR  &= ~((3UL << 2* 4) |
-                       (3UL << 2* 9) |
-                       (3UL << 2*10) |
-                       (3UL << 2*11) |
-                       (3UL << 2*12) |
-                       (3UL << 2*13) |
-                       (3UL << 2*14) |
-                       (3UL << 2*15)  );   /* PD.8..15 is 50MHz Fast Speed     */
+                       (3UL << 2* 5) |
+                       (3UL << 2* 7)   );   /* PD.4,5,7 is 50MHz Fast Speed     */
   GPIOB->OSPEEDR  |=  ((2UL << 2* 4) |
-                       (2UL << 2* 9) | 
-                       (2UL << 2*10) | 
-                       (2UL << 2*11) | 
-                       (2UL << 2*12) | 
-                       (2UL << 2*13) | 
-                       (2UL << 2*14) | 
-                       (2UL << 2*15)  ); 
+                       (2UL << 2* 5) | 
+                       (2UL << 2* 7)   ); 
   GPIOB->PUPDR    &= ~((3UL << 2* 4) |
-                       (3UL << 2* 9) |
-                       (3UL << 2*10) |
-                       (3UL << 2*11) |
-                       (3UL << 2*12) |
-                       (3UL << 2*13) |
-                       (3UL << 2*14) |
-                       (3UL << 2*15)  );   /* PD.8..15 is Pull up              */
+                       (3UL << 2* 5) |
+                       (3UL << 2* 7)   );   /* PD.4,5,7 is Pull up              */
   GPIOB->PUPDR    |=  ((1UL << 2* 4) |
-                       (1UL << 2* 9) | 
-                       (1UL << 2*10) | 
-                       (1UL << 2*11) | 
-                       (1UL << 2*12) | 
-                       (1UL << 2*13) | 
-                       (1UL << 2*14) | 
-                       (1UL << 2*15)  ); 
+                       (1UL << 2* 5) | 
+                       (1UL << 2* 7)   ); 
 }
 
 /*----------------------------------------------------------------------------
@@ -135,6 +101,32 @@ void outputSignalON(unsigned int Switch) {
 void outputSignalOFF(unsigned int Switch) {
 		GPIOB->BSRR = (1U << Switch) << 16; 
 
+}
+
+void selectMode(unsigned int mode) {
+	
+	switch(mode) {
+		
+		case MODE_VOLTAGE: //Voltage  00
+			outputSignalOFF(7);
+			outputSignalOFF(5);
+		  outputSignalON(4); //enable
+			break;
+		case MODE_CURRENT: //Current 01
+			outputSignalOFF(7);
+			outputSignalON(4); //enable
+			outputSignalON(5);
+			break;
+		case MODE_RESISTANCE: //Resistance 10 
+			outputSignalOFF(5);
+			outputSignalON(4); //enable
+			outputSignalON(7);
+			break;
+		default:  //Voltage
+		 mode = MODE_VOLTAGE; 	
+		break; 
+	}
+	
 }
 
 

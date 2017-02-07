@@ -40,12 +40,11 @@ unsigned int read_ADC1 (void) {
 }
 
 /*function that displays a text and integer on separate lines of the LCD*/
-void display_Measure(char* Measurement, char* Unit, int value){
+void display_Measure(char* Measurement, char* Unit, float value){
 
-	lcd_clear_display();
 	lcd_write_string(Measurement,0,0); 
 	
 	char t [16] = {' '};
-	sprintf(t, "%d %s", value,Unit);
+	sprintf(t, "%.4f %s", value,Unit);
 	lcd_write_string(t,1,0);
 }

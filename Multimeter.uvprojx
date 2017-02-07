@@ -379,11 +379,6 @@
           <GroupName>Source Group 1</GroupName>
           <Files>
             <File>
-              <FileName>LCD.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\LCD.c</FilePath>
-            </File>
-            <File>
               <FileName>LED.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\LED.c</FilePath>
@@ -407,6 +402,21 @@
               <FileName>menu.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\menu.c</FilePath>
+            </File>
+            <File>
+              <FileName>ADC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\ADC.c</FilePath>
+            </File>
+            <File>
+              <FileName>lcd_buffer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\LCD\lcd_buffer.c</FilePath>
+            </File>
+            <File>
+              <FileName>lcd_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\LCD\lcd_driver.c</FilePath>
             </File>
           </Files>
         </Group>

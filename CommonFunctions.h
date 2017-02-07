@@ -9,4 +9,5 @@
 	void outputSignalON(unsigned int Switch);
   void outputSignalOFF(unsigned int Switch);
 	void waitForRelease(void);
+	void selectMode(unsigned int mode);
 #endif //__COMMON_FUNCTIONS_H
