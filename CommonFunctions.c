@@ -26,21 +26,25 @@ void Delay (uint32_t dlyTicks) {
   or times out and returns -1 if no button was pressed otherwise returns 
   the index of the button pressed.  Returns 8 if User button was Pressed.
  *----------------------------------------------------------------------------*/
-int DelayForButton (uint32_t dlyTicks) {                                              
+int DelayForButton (uint32_t dlyTicks, int buttons[], int size) {                                              
   uint32_t curTicks;
 
   curTicks = msTicks;
 	int i=0;
   while ((msTicks - curTicks) < dlyTicks){
-			for (i=0; i<=7; i++){
-				if (SWT_Check(i)){
-					return i; 
+			for (i=0; i<=size-1; i++){
+				if (buttons[i] != 8) {
+					if (SWT_Check(buttons[i])){
+						return buttons[i]; 
+					}
+					
+				} else {
+					if (BTN_Get()) {
+						return 8;
+					}
 				}
-			}
-			if (BTN_Get()){
-				return 8;
-			}
-	};
+		}
+	}
 	return -1;
 }
 

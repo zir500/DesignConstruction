@@ -6,5 +6,6 @@
 #define  MODE_RESISTANCE 3
 
 void menu(void);
+int printAndWait(char firstLineString[], char secondLineString[], int buttons[], int size);
 
 #endif //__MENU_H

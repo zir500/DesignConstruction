@@ -5,6 +5,7 @@
 #include "LED.h"
 #include <string.h>
 #include "menu.h"
+#include <stdlib.h>
 
 
 
@@ -39,29 +40,12 @@ void scrollText(char message[], int messageLength){
 
 int openVoltageMenu(){
 	
-	outputSignalON(4U);
 	MULTIMETER_MODE = MODE_VOLTAGE;
-	
-	lcd_write_string("Select options", 0, 0);
-
-	
-	char message[] = "  1.Manual Range    2.Auotmatic Range ";
-	int messageLength = strlen(message)-1;
-	int buttonPressed = -1;
-	
-	LED_Out(3);
-	
-	while((buttonPressed != 0) && (buttonPressed != 1) && (buttonPressed != 8) ){
-		//If message wont fit on the screen then scroll it
-		if(messageLength > 16){
-			scrollText(message, messageLength);
-		}
-
-		lcd_write_string(message, 1, 0);
-		buttonPressed = DelayForButton(SCROLL_RATE);	
-	}
-	
+	int buttonArray[4] = {0,1,8};
+	int size = 3;
+	int buttonPressed = printAndWait("Select options", " 1.Manual Range    2.Auotmatic Range ", buttonArray, size);
 	int selectedMenu = 0; 
+	
 	switch(buttonPressed) {
 		case 0: 
 			selectedMenu = MENU_ID_VOLTAGE_MANUAL_RANGE;
@@ -78,31 +62,49 @@ int openVoltageMenu(){
 	return selectedMenu;
 }
 
-int openCurrentMenu(){
-	
-	outputSignalON(4U);
-	MULTIMETER_MODE = MODE_CURRENT;
-	
-	lcd_write_string("Select options", 0, 0);
 
-	
-	char message[] = "  1.Manual Range    2.Auotmatic Range ";
-	int messageLength = strlen(message)-1;
-	int buttonPressed = -1;
-	
-	LED_Out(3);
-	
-	while((buttonPressed != 0) && (buttonPressed != 1) && (buttonPressed != 8) ){
-		//If message wont fit on the screen then scroll it
-		if(messageLength > 16){
-			scrollText(message, messageLength);
-		}
+int openManualVoltage() {
 
-		lcd_write_string(message, 1, 0);
-		buttonPressed = DelayForButton(SCROLL_RATE);	
+	MULTIMETER_MODE = MODE_VOLTAGE;
+	int buttonArray[5] = {0,1,2,3,8};
+	int size = 5;
+	
+	
+	int buttonPressed = printAndWait("Voltage Manual", " 1.10V  2.1V  3.100mV 4. 10mV ", buttonArray, size);
+	int selectedMenu = 0; 
+	
+	switch(buttonPressed) {
+		case 0: 
+			//manual range of 10 V
+			break;
+		case 1:
+			//manual range of 1 V
+			break;
+		case 2:
+			//manual range of 100 mV
+			break;
+		case 3:
+			//manual range of 10 mV
+			break; 
+		case 8:
+			selectedMenu = MENU_ID_VOLTAGE;
+			//outputSignalOFF(4U);
+			break;
 	}
 	
+	return selectedMenu;
+}
+
+int openCurrentMenu(){
+	
+	MULTIMETER_MODE = MODE_CURRENT;
+	
+	int buttonArray[4] = {0,1,8};
+	int size = 3;
+	
+	int buttonPressed = printAndWait("Select options", "1.Manual Range    2.Auotmatic Range ", buttonArray, size);
 	int selectedMenu = 0; 
+	
 	switch(buttonPressed) {
 		case 0: 
 			selectedMenu = MENU_ID_CURRENT_MANUAL_RANGE;
@@ -121,29 +123,13 @@ int openCurrentMenu(){
 
 int openResistanceMenu(){
 	
-	outputSignalON(4U);
 	MULTIMETER_MODE = MODE_RESISTANCE;
 	
-	lcd_write_string("Select options", 0, 0);
-
+	int buttonArray[4] = {0,1,8};
+	int size = 3;
+	int buttonPressed = printAndWait("Select options", " 1.Manual Range    2.Auotmatic Range ", buttonArray, size);
+	int selectedMenu = 0;
 	
-	char message[] = "  1.Manual Range    2.Auotmatic Range ";
-	int messageLength = strlen(message)-1;
-	int buttonPressed = -1;
-	
-	LED_Out(3);
-	
-	while((buttonPressed != 0) && (buttonPressed != 1) && (buttonPressed != 8) ){
-		//If message wont fit on the screen then scroll it
-		if(messageLength > 16){
-			scrollText(message, messageLength);
-		}
-
-		lcd_write_string(message, 1, 0);
-		buttonPressed = DelayForButton(SCROLL_RATE);	
-	}
-	
-	int selectedMenu = 0; 
 	switch(buttonPressed) {
 		case 0: 
 			selectedMenu = MENU_ID_RESISTANCE_MANUAL_RANGE;
@@ -161,26 +147,11 @@ int openResistanceMenu(){
 }
 
 int openMenu(){
-	char message[] = "   1.Voltage   2.Current   3.Resistance";
-	int messageLength = strlen(message)-1;
-	int buttonPressed = -1;
-	
+
+	int buttonArray[4] = {0,1,2,8};
+	int size = 4;
+	int buttonPressed = printAndWait("Select Function", " 1.Voltage   2.Current   3.Resistance ", buttonArray, size);
 	LED_Out(7);
-	
-	//Top Line
-	lcd_write_string("Select Function", 0, 0);
-	
-	//Second Line & Wait for a button to be pressed
-	while((buttonPressed != 0) && (buttonPressed != 1) && (buttonPressed != 2) && (buttonPressed != 8) ){ 
-		
-		//If message wont fit on the screen then scroll it
-		if(messageLength > 16){
-			scrollText(message, messageLength);
-		}
-	
-			lcd_write_string(message, 1, 0);
-			buttonPressed = DelayForButton(SCROLL_RATE);	
-	}
 	
 	int selectedMenu = MENU_ID_VOLTAGE;
 	switch (buttonPressed){
@@ -201,6 +172,35 @@ int openMenu(){
 			break;
 	}
 	return selectedMenu;
+}
+
+
+int printAndWait(char firstLineString[], char* secondLineString, int buttons[], int size) {
+	
+	outputSignalON(4U);
+	
+	lcd_write_string(firstLineString, 0, 0);
+
+	int messageLength = strlen(secondLineString)-1;
+	char* message = malloc(messageLength+1 * sizeof(char));
+	strcpy(message, secondLineString);
+
+	int buttonPressed = -1;
+	
+	LED_Out(3);
+	
+	while(buttonPressed == -1){
+		//If message wont fit on the screen then scroll it
+		if(messageLength > 16){
+			scrollText(message, messageLength);
+		}
+
+		lcd_write_string(message, 1, 0);
+		buttonPressed = DelayForButton(SCROLL_RATE, buttons, size);	
+	}
+
+	free(message);
+	return buttonPressed; 
 }
 
 
@@ -245,6 +245,7 @@ void menu(){
 			case MENU_ID_CURRENT_MANUAL_RANGE:
 				//manual range for CURRENT
 				//go to select range menu
+				selectedMenuID = openManualVoltage();
 				break;
 			
 			case MENU_ID_CURRENT_AUTO_RANGE:
