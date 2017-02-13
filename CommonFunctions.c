@@ -69,27 +69,41 @@ void init_GIPOB(){
 	
   RCC->AHB1ENR  |= ((1UL <<  3) );         /* Enable GPIOB clock                */
 
-  GPIOB->MODER    &= ~((3UL << 2* 4) |
-                       (3UL << 2* 5) |
-                       (3UL << 2*7) 	 );   /* PD.4,5,7 is output               */
-  GPIOB->MODER    |=  ((1UL << 2* 4) |
-                       (1UL << 2* 5) | 
-                       (1UL << 2*7) 	 ); 
+  GPIOB->MODER    &= ~((3UL <<  2* 4) |
+                       (3UL <<  2* 5) |
+                       (3UL <<  2*7) |
+											 (3UL <<  2*8) |
+											 (3UL <<  2*15) );   /* PB.4,5,7,8, 15 is output               */
+  GPIOB->MODER    |=  ((1UL <<  2* 4) |
+                       (1UL <<  2* 5) | 
+                       (1UL <<  2*7) |
+											 (1UL <<  2*8) |
+											 (1UL <<  2*15)); 
   GPIOB->OTYPER   &= ~((1UL <<    4) |
                        (1UL <<    5) |
-                       (1UL <<    7)   );   /* PD.4,5,7  is output Push-Pull     */
+                       (1UL <<    7) |
+											 (1UL <<    8) |
+											 (1UL <<  	15));   /* PB 4,5,7,8, 15 is output Push-Pull     */
   GPIOB->OSPEEDR  &= ~((3UL << 2* 4) |
                        (3UL << 2* 5) |
-                       (3UL << 2* 7)   );   /* PD.4,5,7 is 50MHz Fast Speed     */
+                       (3UL << 2* 7) |
+											 (3UL << 2*8) |
+											 (3UL << 2*15));   /* PB.4,5,7,8, 15 is 50MHz Fast Speed     */
   GPIOB->OSPEEDR  |=  ((2UL << 2* 4) |
                        (2UL << 2* 5) | 
-                       (2UL << 2* 7)   ); 
+                       (2UL << 2* 7) |
+											 (2UL << 2*8) 	|
+											 (2UL << 2*15)); 
   GPIOB->PUPDR    &= ~((3UL << 2* 4) |
                        (3UL << 2* 5) |
-                       (3UL << 2* 7)   );   /* PD.4,5,7 is Pull up              */
+                       (3UL << 2* 7) |
+											 (3UL << 2*8) |
+											 (3UL << 2*15));   /* PB.4,5,7,8,15 is Pull up              */
   GPIOB->PUPDR    |=  ((1UL << 2* 4) |
                        (1UL << 2* 5) | 
-                       (1UL << 2* 7)   ); 
+                       (1UL << 2* 7) |
+											 (1UL << 2* 8)  |
+											 (1UL <<  2*15)); 
 }
 
 /*----------------------------------------------------------------------------
@@ -108,7 +122,18 @@ void outputSignalOFF(unsigned int Switch) {
 }
 
 void selectMode(unsigned int mode) {
-	
+
+	if (mode == 0x1111) { //default mode, enable = 0
+		outputSignalOFF(4);
+		outputSignalOFF(5);
+		outputSignalOFF(7);
+		outputSignalOFF(8);
+		outputSignalOFF(15);
+	} else {
+		outputSignalON(4);
+		
+	}
+	/*	
 	switch(mode) {
 		
 		case MODE_VOLTAGE: //Voltage  00
@@ -118,19 +143,19 @@ void selectMode(unsigned int mode) {
 			break;
 		case MODE_CURRENT: //Current 01
 			outputSignalOFF(7);
-			outputSignalON(4); //enable
 			outputSignalON(5);
+			outputSignalON(4); //enable
 			break;
 		case MODE_RESISTANCE: //Resistance 10 
 			outputSignalOFF(5);
-			outputSignalON(4); //enable
 			outputSignalON(7);
+			outputSignalON(4); //enable
 			break;
 		default:  //Voltage
 		 mode = MODE_VOLTAGE; 	
 		break; 
 	}
-	
+	*/
 }
 
 

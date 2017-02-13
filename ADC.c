@@ -44,7 +44,8 @@ void display_Measure(char* Measurement, char* Unit, float value){
 
 	lcd_write_string(Measurement,0,0); 
 	
-	char t [16] = {' '};
-	sprintf(t, "%.4f %s", value,Unit);
+	char t[16] = {' '};
+	char spaces[16] = "               ";
+	sprintf(t, "%.4f %s%s", value,Unit,spaces);
 	lcd_write_string(t,1,0);
 }
