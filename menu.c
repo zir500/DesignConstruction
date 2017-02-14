@@ -11,26 +11,10 @@
 
 int MULTIMETER_MODE = MODE_VOLTAGE;
 
-
-//define menu IDs
-/*#define MENU_EXIT -1
-#define MENU_ID_OPEN 0 
-
-#define MENU_ID_VOLTAGE 1
-#define MENU_ID_VOLTAGE_MANUAL_RANGE 2 
-#define MENU_ID_VOLTAGE_AUTO_RANGE 3
-
-#define MENU_ID_CURRENT 4
-#define MENU_ID_CURRENT_MANUAL_RANGE 5 
-#define MENU_ID_CURRENT_AUTO_RANGE 6
-
-#define MENU_ID_RESISTANCE 7
-#define MENU_ID_RESISTANCE_MANUAL_RANGE 8 
-#define MENU_ID_RESISTANCE_AUTO_RANGE 9  */
-
 #define SCROLL_RATE 400
 
 void scrollText(char message[], int messageLength){
+
 	char lastCharacter = message[messageLength];
 	for(int i=messageLength; i > 0; i--){
 		message[i] = message[i-1];
@@ -55,7 +39,6 @@ MenuIds openVoltageMenu(){
 			break;
 		case 8:
 			selectedMenu = MENU_ID_OPEN;
-			//outputSignalOFF(4U);
 			break;
 	}
 	
@@ -69,6 +52,7 @@ RangeMenuSettings openManualVoltage() {
 	int buttonArray[5] = {0,1,2,3,8};
 	int size = 5;
 	
+	selectMode(0x15);
 	
 	int buttonPressed = printAndWait("Voltage Manual", " 1.10V  2.1V  3.100mV 4.10mV ", buttonArray, size);
 	RangeMenuSettings selectedSettings;
@@ -115,9 +99,11 @@ MenuIds openCurrentMenu(){
 		case 0: 
 			selectedMenu = MENU_ID_CURRENT_MANUAL_RANGE;
 			break;
+		
 		case 1:
 			selectedMenu = MENU_ID_CURRENT_AUTO_RANGE;
 			break;
+		
 		case 8:
 			selectedMenu = MENU_ID_OPEN;
 			outputSignalOFF(4U);
@@ -140,9 +126,11 @@ MenuIds openResistanceMenu(){
 		case 0: 
 			selectedMenu = MENU_ID_RESISTANCE_MANUAL_RANGE;
 			break;
+		
 		case 1:
 			selectedMenu = MENU_ID_RESISTANCE_AUTO_RANGE;
 			break;
+		
 		case 8:
 			selectedMenu = MENU_ID_OPEN;
 			//outputSignalOFF(4U);
@@ -157,7 +145,6 @@ MenuIds openMenu(){
 	int buttonArray[4] = {0,1,2,8};
 	int size = 4;
 	int buttonPressed = printAndWait("Select Function", " 1.Voltage   2.Current   3.Resistance ", buttonArray, size);
-	LED_Out(7);
 	
 	MenuIds selectedMenu = MENU_ID_VOLTAGE; 
 	switch (buttonPressed){
@@ -182,9 +169,7 @@ MenuIds openMenu(){
 
 
 int printAndWait(char firstLineString[], char* secondLineString, int buttons[], int size) {
-	
-	outputSignalON(4U);
-	
+		
 	lcd_write_string(firstLineString, 0, 0);
 
 	int messageLength = strlen(secondLineString)-1;
@@ -192,8 +177,6 @@ int printAndWait(char firstLineString[], char* secondLineString, int buttons[], 
 	strcpy(message, secondLineString);
 
 	int buttonPressed = -1;
-	
-	LED_Out(3);
 	
 	while(buttonPressed == -1){
 		//If message wont fit on the screen then scroll it
@@ -214,31 +197,34 @@ void menu(){
 	MenuIds selectedMenuID = MENU_ID_OPEN;
 	RangeMenuSettings selectedSettings;
 	selectedSettings.selectedRange = RANGE_ID_RANGE_10;
-	
+
 	while(1){
 		
 		waitForRelease();
 		lcd_clear_display();
+		
 		switch (selectedMenuID) {
 			
 			case MENU_ID_MEASUREMENT:
+				LED_Out(0);
 				measurementMenu(selectedSettings.selectedRange);
 				selectedMenuID = MENU_ID_VOLTAGE_MANUAL_RANGE;
 				break; 
 			
 			case MENU_ID_OPEN:
+				LED_Out(7);
 				selectedMenuID = openMenu();
 				break;
 			
-			case MENU_ID_VOLTAGE:
-				//go to Voltage menu
-				LED_Out(1);
+			case MENU_ID_VOLTAGE:  //go to Voltage menu
+				LED_Out(3);
 				selectedMenuID = openVoltageMenu();
 				break;
 			
 			case MENU_ID_VOLTAGE_MANUAL_RANGE:
 				//manual range for Current
 				//go to select range menu
+				LED_Out(15);
 				selectedSettings = openManualVoltage();	
 				selectedMenuID = selectedSettings.nextMenu;
 				break;
@@ -246,40 +232,45 @@ void menu(){
 			case MENU_ID_VOLTAGE_AUTO_RANGE:
 				//auto range for Current
 				//auto ranging stuff 
+				LED_Out(0);
 				selectedMenuID = MENU_ID_MEASUREMENT;
 				break;
 			
 			case MENU_ID_CURRENT:
-				//got to Current menu 
-				LED_Out(1);
+				//got to Current menu
+				LED_Out(3);
 				selectedMenuID = openCurrentMenu();
 				break; 
 			
 			case MENU_ID_CURRENT_MANUAL_RANGE:
 				//manual range for CURRENT
 				//go to select range menu
+			 LED_Out(15);
 				break;
 			
 			case MENU_ID_CURRENT_AUTO_RANGE:
 				//auto range for CURRENT
 				//auto ranging stuff 
+				LED_Out(0);
 				selectedMenuID = MENU_ID_MEASUREMENT;
 				break;
 			
 			case MENU_ID_RESISTANCE:
 				//got to resistance menu
-				LED_Out(1);
+			  LED_Out(3);
 				selectedMenuID = openResistanceMenu();
 				break;
 			
 			case MENU_ID_RESISTANCE_MANUAL_RANGE:
 				//manual range for resistance
 				//go to select range menu
+				LED_Out(15);
 				break;
 			
 			case MENU_ID_RESISTANCE_AUTO_RANGE:
 				//auto range for resistance
 				//auto ranging stuff 
+				LED_Out(0);
 				selectedMenuID = MENU_ID_MEASUREMENT;
 				break;
 			
@@ -299,7 +290,10 @@ void measurementMenu(RangeIds range) {
 		unsigned int value = read_ADC1();
 		float actualValue;
 		float rangeValue;
+		char* units;
+		
 		char* rangeString;
+		char mode = 'M';
 		
 		unsigned int rangeMode = 0x3;
 		unsigned int typeMode = 0x3<<2;
@@ -309,25 +303,29 @@ void measurementMenu(RangeIds range) {
 			default:
 			case RANGE_ID_RANGE_10:
 				rangeValue = 1.0 / SAMPLES_DEPTH;
-				rangeString = "V";
+				units = "V";
+				rangeString = "10V";
 				rangeMode = 0x0;
 				break;
 			
 			case RANGE_ID_RANGE_1:
 				rangeValue = 10.0 / SAMPLES_DEPTH;
-				rangeString = "V";
+				units = "V";
+				rangeString = "1V";
 				rangeMode = 0x1;
 				break;
 			
 			case RANGE_ID_RANGE_100m:
 				rangeValue = (100.0)/ SAMPLES_DEPTH;
-				rangeString = "mV";
+				units = "mV";
+				rangeString = "100mV";
 				rangeMode = 0x2;
 				break;
 			
 			case RANGE_ID_RANGE_10m:
 				rangeValue = (1000.0)/ SAMPLES_DEPTH;
-				rangeString = "mV";
+				units = "mV";
+		    rangeString = "10mV";
 				rangeMode = 0x3;
 				break;
 		}
@@ -336,19 +334,19 @@ void measurementMenu(RangeIds range) {
 			
 			case MODE_VOLTAGE:
 				actualValue = value * rangeValue;
-				display_Measure("Voltage", rangeString, actualValue);
+				display_Measure("Voltage", mode, rangeString, units, actualValue);
 				typeMode = 0x0<<2;
 				break;
 			
 			case MODE_CURRENT:
 				actualValue = 3.3*value/4096.0 * 3.0;
-				display_Measure("Current", "A", actualValue);
+				display_Measure("Current", mode, "1mA", "mA", actualValue);
 			  typeMode = 0x1<<2;
 				break;
 			
 			case MODE_RESISTANCE:
 				actualValue = 3.3*value/(4096.0*0.000003);
-				display_Measure("Resistance", "ohm", actualValue);
+				display_Measure("Resistance", mode, "1mOhm", "mOhm", actualValue);
 				typeMode = 0x2<<2;
 				break;
 			
@@ -356,13 +354,8 @@ void measurementMenu(RangeIds range) {
 				MULTIMETER_MODE = MODE_VOLTAGE;
 				break;
 		}
-	
 		selectMode(typeMode | rangeMode);
-	
 	}
-	
 }
-
-
 
 

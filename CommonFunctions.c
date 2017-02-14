@@ -123,39 +123,19 @@ void outputSignalOFF(unsigned int Switch) {
 
 void selectMode(unsigned int mode) {
 
-	if (mode == 0x1111) { //default mode, enable = 0
+	if (mode == 0x15) { //default mode, enable = 0
 		outputSignalOFF(4);
 		outputSignalOFF(5);
 		outputSignalOFF(7);
 		outputSignalOFF(8);
 		outputSignalOFF(15);
 	} else {
-		outputSignalON(4);
+		outputSignalON(15);
 		
+		GPIOB->ODR |= (mode & 0x3) << 4;
+		GPIOB->ODR |= (mode & (0x3<<2)) << 7;
+
 	}
-	/*	
-	switch(mode) {
-		
-		case MODE_VOLTAGE: //Voltage  00
-			outputSignalOFF(7);
-			outputSignalOFF(5);
-		  outputSignalON(4); //enable
-			break;
-		case MODE_CURRENT: //Current 01
-			outputSignalOFF(7);
-			outputSignalON(5);
-			outputSignalON(4); //enable
-			break;
-		case MODE_RESISTANCE: //Resistance 10 
-			outputSignalOFF(5);
-			outputSignalON(7);
-			outputSignalON(4); //enable
-			break;
-		default:  //Voltage
-		 mode = MODE_VOLTAGE; 	
-		break; 
-	}
-	*/
 }
 
 
