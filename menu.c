@@ -52,7 +52,7 @@ RangeMenuSettings openManualVoltage() {
 	int buttonArray[5] = {0,1,2,3,8};
 	int size = 5;
 	
-	selectMode(0x15);
+	selectMode(0xF);
 	
 	int buttonPressed = printAndWait("Voltage Manual", " 1.10V  2.1V  3.100mV 4.10mV ", buttonArray, size);
 	RangeMenuSettings selectedSettings;
@@ -78,7 +78,6 @@ RangeMenuSettings openManualVoltage() {
 			break; 
 		case 8:
 			selectedSettings.nextMenu = MENU_ID_VOLTAGE;
-			//outputSignalOFF(4U);
 			break;
 	}
 	
@@ -106,11 +105,46 @@ MenuIds openCurrentMenu(){
 		
 		case 8:
 			selectedMenu = MENU_ID_OPEN;
-			outputSignalOFF(4U);
 			break;
 	}
 	
 	return selectedMenu;
+}
+
+RangeMenuSettings openManualCurrent() {
+	
+	MULTIMETER_MODE = MODE_CURRENT;
+	int buttonArray[4] = {0,1,2,8};
+	int size = 4;
+	
+	selectMode(0xF);
+	
+	int buttonPressed = printAndWait("Current Manual", "1.1A  2.100mA 3.10mA ", buttonArray, size);
+	RangeMenuSettings selectedSettings;
+	selectedSettings.nextMenu = MENU_ID_MEASUREMENT;
+	selectedSettings.selectedRange = RANGE_ID_RANGE_10;
+	
+	switch(buttonPressed) {
+
+		case 1:
+			//manual range of 1 A
+			selectedSettings.selectedRange = RANGE_ID_RANGE_1;
+			break;
+		case 2:
+			//manual range of 100 mA
+			selectedSettings.selectedRange = RANGE_ID_RANGE_100m;
+			break;
+		case 3:
+			//manual range of 10 mA
+			selectedSettings.selectedRange = RANGE_ID_RANGE_10m;
+			break; 
+		case 8:
+			selectedSettings.nextMenu = MENU_ID_CURRENT;
+			break;
+	}
+	
+	return selectedSettings;
+	
 }
 
 MenuIds openResistanceMenu(){
@@ -133,11 +167,50 @@ MenuIds openResistanceMenu(){
 		
 		case 8:
 			selectedMenu = MENU_ID_OPEN;
-			//outputSignalOFF(4U);
 			break;
 	}
 	
 	return selectedMenu;
+}
+
+
+RangeMenuSettings openManualResistance() {
+	
+	MULTIMETER_MODE = MODE_RESISTANCE;
+	int buttonArray[5] = {0,1,2,3,8};
+	int size = 5;
+	
+	selectMode(0xF);
+	
+	int buttonPressed = printAndWait("Resistance Manual", "1.1kOhm  2.10kOhm 3.100kOhm 4.1MOhm ", buttonArray, size);
+	RangeMenuSettings selectedSettings;
+	selectedSettings.nextMenu = MENU_ID_MEASUREMENT;
+	selectedSettings.selectedRange = RANGE_ID_RANGE_10;
+	
+	switch(buttonPressed) {
+		case 0: 
+			//manual range of 1kOhm
+			selectedSettings.selectedRange = RANGE_ID_RANGE_1;
+			break;
+		case 1:
+			//manual range of 10kOhm
+			selectedSettings.selectedRange = RANGE_ID_RANGE_10;
+			break;
+		case 2:
+			//manual range of 100kOhm
+			selectedSettings.selectedRange = RANGE_ID_RANGE_100m;
+			break;
+		case 3:
+			//manual range of 1MOhm
+			selectedSettings.selectedRange = RANGE_ID_RANGE_10m;
+			break; 
+		case 8:
+			selectedSettings.nextMenu = MENU_ID_RESISTANCE;
+			break;
+	}
+	
+	return selectedSettings;
+	
 }
 
 MenuIds openMenu(){
@@ -207,8 +280,8 @@ void menu(){
 			
 			case MENU_ID_MEASUREMENT:
 				LED_Out(0);
-				measurementMenu(selectedSettings.selectedRange);
-				selectedMenuID = MENU_ID_VOLTAGE_MANUAL_RANGE;
+				selectedMenuID = measurementMenu(selectedSettings.selectedRange);
+			//	selectedMenuID = MENU_ID_VOLTAGE_MANUAL_RANGE;
 				break; 
 			
 			case MENU_ID_OPEN:
@@ -245,7 +318,9 @@ void menu(){
 			case MENU_ID_CURRENT_MANUAL_RANGE:
 				//manual range for CURRENT
 				//go to select range menu
-			 LED_Out(15);
+			  LED_Out(7);
+				selectedSettings = openManualCurrent();
+				selectedMenuID = selectedSettings.nextMenu;
 				break;
 			
 			case MENU_ID_CURRENT_AUTO_RANGE:
@@ -265,6 +340,8 @@ void menu(){
 				//manual range for resistance
 				//go to select range menu
 				LED_Out(15);
+				selectedSettings = openManualResistance();
+				selectedMenuID = selectedSettings.nextMenu;
 				break;
 			
 			case MENU_ID_RESISTANCE_AUTO_RANGE:
@@ -281,13 +358,16 @@ void menu(){
 	}
 }
 
-void measurementMenu(RangeIds range) {
+MenuIds measurementMenu(RangeIds range) {
 		int buttonArray = 8;
 		int size = 1;
+		MenuIds selectedMenu = MENU_ID_VOLTAGE_MANUAL_RANGE; 
+	
+	  char* measurement = "";
 	
 	while(DelayForButton(500, &buttonArray, size) !=  8){
 		
-		unsigned int value = read_ADC1();
+		unsigned int value;
 		float actualValue;
 		float rangeValue;
 		char* units;
@@ -298,64 +378,125 @@ void measurementMenu(RangeIds range) {
 		unsigned int rangeMode = 0x3;
 		unsigned int typeMode = 0x3<<2;
 		
+	 
+		
 		switch (range) {
 			
 			default:
 			case RANGE_ID_RANGE_10:
-				rangeValue = 1.0 / SAMPLES_DEPTH;
-				units = "V";
-				rangeString = "10V";
-				rangeMode = 0x0;
-				break;
-			
+				if (MULTIMETER_MODE == MODE_CURRENT ) {
+					range = RANGE_ID_RANGE_1;
+					
+				} else if (MULTIMETER_MODE == MODE_VOLTAGE) {
+					units = "V";
+					rangeString = "10V";
+					
+				} else {
+					units = "ohm";
+					rangeString = "10ohm";
+					
+				}
+					rangeValue = 1.0 / SAMPLES_DEPTH;
+					rangeMode = 0x0;
+					break;
+				
 			case RANGE_ID_RANGE_1:
-				rangeValue = 10.0 / SAMPLES_DEPTH;
-				units = "V";
-				rangeString = "1V";
-				rangeMode = 0x1;
+				if (MULTIMETER_MODE == MODE_CURRENT ) {
+					units = "A";
+					rangeString = "1A";
+					rangeMode = 0x0;
+					
+				} else if (MULTIMETER_MODE == MODE_VOLTAGE) {
+					units = "V";
+					rangeString = "10V";
+					rangeMode = 0x1;
+					
+				} else {
+					units = "Ohm";
+					rangeString = "10Ohm";
+				  rangeMode = 0x1;
+					
+				}
+			  rangeValue = 10.0 / SAMPLES_DEPTH;
 				break;
 			
 			case RANGE_ID_RANGE_100m:
+				if (MULTIMETER_MODE == MODE_CURRENT ) {
+					units = "mA";
+					rangeString = "100mA";
+					rangeMode = 0x1;
+					
+				} else if (MULTIMETER_MODE == MODE_VOLTAGE) {
+					units = "mV";
+			   	rangeString = "100mV";
+					rangeMode = 0x2;
+					
+				} else {
+					units = "mOhm";
+					rangeString = "100mOhm";
+				  rangeMode = 0x2;
+					
+				}
 				rangeValue = (100.0)/ SAMPLES_DEPTH;
-				units = "mV";
-				rangeString = "100mV";
-				rangeMode = 0x2;
 				break;
 			
 			case RANGE_ID_RANGE_10m:
+				if (MULTIMETER_MODE == MODE_CURRENT ) {
+					units = "mA";
+					rangeString = "10mA";
+					rangeMode = 0x2;
+					
+				} else if (MULTIMETER_MODE == MODE_VOLTAGE) {
+					units = "mV";
+			   	rangeString = "10mV";
+					rangeMode = 0x3;
+					
+				} else {
+					units = "mOhm";
+					rangeString = "10mOhm";
+				  rangeMode = 0x3;
+					
+				}
 				rangeValue = (1000.0)/ SAMPLES_DEPTH;
-				units = "mV";
-		    rangeString = "10mV";
-				rangeMode = 0x3;
 				break;
 		}
+		
 		
 		switch(MULTIMETER_MODE){
 			
 			case MODE_VOLTAGE:
 				actualValue = value * rangeValue;
+			  measurement = "Voltage";
 				display_Measure("Voltage", mode, rangeString, units, actualValue);
 				typeMode = 0x0<<2;
 				break;
 			
 			case MODE_CURRENT:
 				actualValue = 3.3*value/4096.0 * 3.0;
-				display_Measure("Current", mode, "1mA", "mA", actualValue);
+				 measurement = "Current";
+				display_Measure("Current", mode, rangeString, units, actualValue);
 			  typeMode = 0x1<<2;
+				selectedMenu = MENU_ID_CURRENT_MANUAL_RANGE;
 				break;
 			
 			case MODE_RESISTANCE:
 				actualValue = 3.3*value/(4096.0*0.000003);
-				display_Measure("Resistance", mode, "1mOhm", "mOhm", actualValue);
+				measurement = "Resistance";
 				typeMode = 0x2<<2;
 				break;
 			
 			default:  //default is MODE_Voltage
 				MULTIMETER_MODE = MODE_VOLTAGE;
+			  selectedMenu = MENU_ID_RESISTANCE_MANUAL_RANGE;
 				break;
 		}
 		selectMode(typeMode | rangeMode);
+		value = read_ADC1();
+		display_Measure(measurement, mode, rangeString, units, actualValue);
+		
 	}
+	
+	return selectedMenu;
 }
 
 

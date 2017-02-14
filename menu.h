@@ -42,6 +42,6 @@ typedef struct{
 
 void menu(void);
 int printAndWait(char firstLineString[], char secondLineString[], int buttons[], int size);
-void measurementMenu(RangeIds range);
+MenuIds measurementMenu(RangeIds range);
 
 #endif //__MENU_H

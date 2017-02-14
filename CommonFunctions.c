@@ -118,22 +118,21 @@ void outputSignalON(unsigned int Switch) {
  *----------------------------------------------------------------------------*/
 void outputSignalOFF(unsigned int Switch) {
 		GPIOB->BSRR = (1U << Switch) << 16; 
-
 }
 
 void selectMode(unsigned int mode) {
 
-	if (mode == 0x15) { //default mode, enable = 0
+	if (mode == 0xF) { //default mode, enable = 0
 		outputSignalOFF(4);
 		outputSignalOFF(5);
 		outputSignalOFF(7);
 		outputSignalOFF(8);
 		outputSignalOFF(15);
 	} else {
-		outputSignalON(15);
+		outputSignalON(0xF);
 		
 		GPIOB->ODR |= (mode & 0x3) << 4;
-		GPIOB->ODR |= (mode & (0x3<<2)) << 7;
+		GPIOB->ODR |= (mode & (0x3<<2)) << 5;
 
 	}
 }
