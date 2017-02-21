@@ -430,7 +430,7 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 					
 				} else if (MULTIMETER_MODE == MODE_VOLTAGE) {
 					units = "V";
-					rangeString = "10V";
+					rangeString = "1V";
 					rangeMode = 0x1;
 					
 				} else {
@@ -488,14 +488,14 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 			case MODE_VOLTAGE:
 				actualValue = value * rangeValue;
 			  measurement = "Voltage";
-				display_Measure("Voltage", mode, rangeString, units, actualValue);
-				typeMode = 0x0<<2;
+			//	display_Measure("Voltage", mode, rangeString, units, actualValue);
+				typeMode = 0x2<<2;
 				break;
 			
 			case MODE_CURRENT:
-				actualValue = 3.3*value/4096.0 * 3.0;
+				actualValue = value;//3.3*value/4096.0 * 3.0;
 				measurement = "Current";
-				display_Measure("Current", mode, rangeString, units, actualValue);
+			//	display_Measure("Current", mode, rangeString, units, actualValue);
 			  typeMode = 0x1<<2;
 				selectedMenu = MENU_ID_CURRENT_MANUAL_RANGE;
 				break;
@@ -503,7 +503,7 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 			case MODE_RESISTANCE:
 				actualValue = 3.3*value/(4096.0*0.000003);
 				measurement = "Resistance";
-				typeMode = 0x2<<2;
+				typeMode = 0x0<<2;
 				break;
 			
 			default:  //default is MODE_Voltage

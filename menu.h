@@ -5,7 +5,7 @@
 #define  MODE_CURRENT 2
 #define  MODE_RESISTANCE 3
 
-#define SAMPLES_DEPTH 3723
+#define SAMPLES_DEPTH 3972
 
 typedef enum {
 	MENU_ID_MEASUREMENT,
