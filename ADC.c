@@ -8,6 +8,8 @@ reads ADC channel */
 #include "STM32F4xx.h"
 #include "LCD/lcd_driver.h"
 
+#include "commonFunctions.h"
+
 void ADC1_init(void) {
 	
 	RCC->APB2ENR  |= RCC_APB2ENR_ADC1EN;       /* Enable ADC1 clock                */
@@ -41,13 +43,15 @@ unsigned int read_ADC1 (void) {
 
 /*function that displays a text and integer on separate lines of the LCD*/
 void display_Measure(char* measurement, char rangeMode, char* range, char* unit, float value){
+	
 	char dummyString[16]= {' '};
+
 	sprintf(dummyString, "%s %c %s", measurement, rangeMode, range);
 	lcd_write_string(dummyString,0,0); 
 	
-	
+		char spaces[16] = "               ";
+
 	char t[16] = {' '};
-	char spaces[16] = "               ";
 	sprintf(t, "%.4f %s%s", value, unit, spaces);
 	lcd_write_string(t,1,0);
 }
