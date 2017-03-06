@@ -67,9 +67,9 @@ void waitForRelease() {
  *----------------------------------------------------------------------------*/
 void init_GIPOB(){
 	
-  RCC->AHB1ENR  |= ((1UL <<  3) );         /* Enable GPIOB clock                */
+  RCC->AHB1ENR  |= RCC_AHB1ENR_GPIOBEN;         /* Enable GPIOB clock                */
 
-  GPIOB->MODER    &= ~((3UL <<  2* 4) |
+  GPIOB->MODER    &= ~((3UL <<  2* 4) |		//TODO: Check whether there are constants to initialise these registers
                        (3UL <<  2* 5) |
                        (3UL <<  2*7) |
 											 (3UL <<  2*8) |
@@ -137,4 +137,52 @@ void selectMode(unsigned int mode) {
 	}
 }
 
+void init_GPIOE(){
+	RCC->AHB1ENR  |= RCC_AHB1ENR_GPIOEEN;         /* Enable GPIOE clock        */
 
+  GPIOE->MODER    &= ~((3UL <<  2* 3) );   /* PE.3 is output               */
+  GPIOE->MODER    |=  ((1UL <<  2* 3) ); 
+  GPIOE->OTYPER   &= ~((1UL <<     3) );   /* PE 3 is output Push-Pull     */
+  GPIOE->OSPEEDR  &= ~((3UL << 2* 3)  );   /* PE.3,50MHz Fast Speed       */
+  GPIOE->OSPEEDR  |=  ((2UL << 2* 3)  ); 
+  GPIOE->PUPDR    &= ~((3UL << 2* 3)  );   /* PE.3 is Pull up             */
+  GPIOE->PUPDR    |=  ((1UL << 2* 3)  ); 
+}
+
+//turn on the buzzer for a specified number of milli-seconds 
+void buzzerOn() { 
+	GPIOE->BSRR |= 1U << 3;
+	
+	TIM7->DIER &= ~TIM_DIER_UIE;
+	TIM7->EGR |= TIM_EGR_UG;
+	TIM7->SR = 0;
+	TIM7->DIER |= TIM_DIER_UIE; 					/*Enable interrupts */
+	TIM7->CR1 |= TIM_CR1_CEN;  //stop timer
+}
+
+void buzzerOFF() {
+	
+	GPIOE->BSRR |= (1U <<3) << 16;					/*Enable interrupts */
+	TIM7->CR1 &= ~TIM_CR1_CEN;  //stop timer
+}
+
+//init TIM7
+void init_TIM7() {
+	
+ 	RCC->APB1ENR |= RCC_APB1ENR_TIM7EN; 	/*Enable clock*/
+ 	TIM7->PSC = 42000; 											
+	TIM7->ARR = 1000;  //set to 3 seconds
+	TIM7->DIER |= TIM_DIER_UIE; 					/*Enable interrupts */
+	NVIC_EnableIRQ(TIM7_IRQn); 				/*Register interrupt*/
+
+}
+
+//handle interrupts 
+void TIM7_IRQHandler(void) {
+	
+	/*Resets the interrupt flag*/
+	TIM7->SR &= ~TIM_SR_UIF;
+	TIM7->CR1 &= ~TIM_CR1_CEN;
+	
+	buzzerOFF();
+}

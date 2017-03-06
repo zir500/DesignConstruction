@@ -5,6 +5,7 @@
 #include "LED.h"
 #include "menu.h"
 #include "ADC.h"
+#include "serial.h"
 
 
 #define BUFFER_SIZE 128 //TODO what is this????
@@ -36,14 +37,18 @@ int main(){
   if (SysTick_Config(SystemCoreClock / 1000)) { /* SysTick 1 msec interrupts  */
     while (1);                                  /* Capture error              */
   }
-	
-	//Initialise
+		
+	//Initialisers
 	initLCD();
 	initButtons();
 	LED_Init();
 	init_GIPOB();
 	ADC1_init();
+	init_TIM7();
+	init_GPIOE();
+	//serial_init(); //either initButtons or serial_init should be commented as they are using the same port
 	
+	buzzerOn();
 	//Run Multimeter
 	menu();
 	

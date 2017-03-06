@@ -126,7 +126,7 @@ void lcd_scrolling(int on, int ms) {
 void lcd_setup_timer(void) {
 	/*Setup timer 6 for most of the timed interrupt work*/
  	RCC->APB1ENR |= RCC_APB1ENR_TIM6EN; /*Enable clock*/
- 	TIM6->PSC = 10; /*Prescaler to zero for smallest time resolution*/
+ 	TIM6->PSC = 0; /*Prescaler to zero for smallest time resolution*/
 	TIM6->DIER |= TIM_DIER_UIE; /*Enable interrupts */
 	NVIC_EnableIRQ(TIM6_DAC_IRQn); /*Register interrupt*/
 }

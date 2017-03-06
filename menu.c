@@ -373,7 +373,7 @@ RangeIds autoRanging(RangeIds currentRange) {
 		//decrease
 		currentRange--;
 	}
-
+	
 	return currentRange;
 }
 
@@ -418,7 +418,7 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 					rangeString = "10ohm";
 					
 				}
-					rangeValue = 1.0 / SAMPLES_DEPTH;
+					rangeValue = (20/3.2);
 					rangeMode = 0x0;
 					break;
 				
@@ -482,20 +482,19 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 				rangeValue = (1000.0)/ SAMPLES_DEPTH;
 				break;
 		}
+		value = read_ADC1();
 		
 		switch(MULTIMETER_MODE){
 			
 			case MODE_VOLTAGE:
-				actualValue = value * rangeValue;
+				actualValue = retSignedValue(value, rangeValue);
 			  measurement = "Voltage";
-			//	display_Measure("Voltage", mode, rangeString, units, actualValue);
 				typeMode = 0x2<<2;
 				break;
 			
 			case MODE_CURRENT:
-				actualValue = value;//3.3*value/4096.0 * 3.0;
+				actualValue = value;  
 				measurement = "Current";
-			//	display_Measure("Current", mode, rangeString, units, actualValue);
 			  typeMode = 0x1<<2;
 				selectedMenu = MENU_ID_CURRENT_MANUAL_RANGE;
 				break;
@@ -513,12 +512,25 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 		}
 
 		selectMode(typeMode | rangeMode);
-		value = read_ADC1();
 		display_Measure(measurement, mode, rangeString, units, actualValue);
+				//	buzzerOn(1000);
+
+		if ( (value == SAMPLES_DEPTH) && (range == RANGE_ID_RANGE_10) ) {
+		}
 		
 	}
 	
 	return selectedMenu;
 }
 
-
+//this checks if the reading value is postive or negative for measuring voltage and current 
+float retSignedValue(int readValue, float rangeValue) { 
+	
+	return (readValue * (3.3/4096.0) * rangeValue) -10; 
+	
+//	if( readValue >= (SAMPLES_DEPTH/2) ) {
+//		return readValue * (3.3/4096.0) * rangeValue /2.0f; // Devided by 2, as the rangeValue has been already diveded by SAMPLES_DEPTH 
+//	} else {
+//		return -readValue * (3.3/4096.0) * rangeValue / 2.0f; // Devided by 2, as the rangeValue has been already diveded by SAMPLES_DEPTH 
+//	}
+}

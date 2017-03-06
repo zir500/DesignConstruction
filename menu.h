@@ -41,6 +41,7 @@ typedef struct{
 void menu(void);
 int printAndWait(char firstLineString[], char secondLineString[], int buttons[], int size);
 MenuIds measurementMenu(int isAutoRangeOn, RangeIds range);
+float retSignedValue(int readValue, float rangeValue);
 
 
 #endif //__MENU_H
