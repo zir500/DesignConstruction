@@ -7,6 +7,7 @@
 #include "menu.h"
 #include <stdlib.h>
 #include "ADC.h"
+#include "StateMenu.h"
 
 
 int MULTIMETER_MODE = MODE_VOLTAGE;
@@ -367,13 +368,11 @@ RangeIds autoRanging(RangeIds currentRange) {
 	
 	int value = read_ADC1();
 		
-	if (value > SAMPLES_DEPTH && currentRange < 4) {
-		currentRange++;
-	} else if (value < 410 && currentRange > 0) {
-		//decrease
+	if (value >= SAMPLES_DEPTH && currentRange != RANGE_ID_RANGE_10) {
 		currentRange--;
+	} else if (value <= 10 && currentRange != RANGE_ID_RANGE_10m) {
+		currentRange++;
 	}
-	
 	return currentRange;
 }
 
@@ -385,152 +384,64 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 	
 	char* measurement = "";
 	
+	const double maximInputVoltage = 3.01; // The voltage which represents a maximum reading in the range
+	
 	while(DelayForButton(300, &buttonArray, size) !=  8){
+
+		unsigned int value; // Raw value measured from ADC (0-4096)
+		float actualValue; // Actual value being represented by the input (eg 100 mA)
 		
-		unsigned int value;
-		float actualValue;
-		float rangeValue;
-		char* units;
+		char* units; // The Units of the current value to be displayed.
+		char* rangeString;// The range (and units) of this measurement.
+		char modeString = 'M';// Indicated which mode the multimeter is in (Auto-range or manual).
 		
-		char* rangeString;
-		char mode = 'M';
-		
-		unsigned int rangeMode = 0x3;
-		unsigned int typeMode = 0x3<<2;
+		unsigned int rangeMode = 0x3;	//range Control signal.
+		unsigned int typeMode = 0x3<<2; //Measurement type control signal (Eg. Are we measuring current?)
 		
 		if (isAutoRangeOn == 1) {
 			range = autoRanging(range);
+			modeString = 'A';
 		}
 		
-		switch (range) {
-			
-			default:
-			case RANGE_ID_RANGE_10:
-				if (MULTIMETER_MODE == MODE_CURRENT ) {
-					range = RANGE_ID_RANGE_1;
-					
-				} else if (MULTIMETER_MODE == MODE_VOLTAGE) {
-					units = "V";
-					rangeString = "10V";
-					
-				} else {
-					units = "ohm";
-					rangeString = "10ohm";
-					
-				}
-					rangeValue = (20/3.2);
-					rangeMode = 0x0;
-					break;
-				
-			case RANGE_ID_RANGE_1:
-				if (MULTIMETER_MODE == MODE_CURRENT ) {
-					units = "A";
-					rangeString = "1A";
-					rangeMode = 0x0;
-					
-				} else if (MULTIMETER_MODE == MODE_VOLTAGE) {
-					units = "V";
-					rangeString = "1V";
-					rangeMode = 0x1;
-					
-				} else {
-					units = "Ohm";
-					rangeString = "10Ohm";
-				  rangeMode = 0x1;
-					
-				}
-			  rangeValue = 10.0 / SAMPLES_DEPTH;
-				break;
-			
-			case RANGE_ID_RANGE_100m:
-				if (MULTIMETER_MODE == MODE_CURRENT ) {
-					units = "mA";
-					rangeString = "100mA";
-					rangeMode = 0x1;
-					
-				} else if (MULTIMETER_MODE == MODE_VOLTAGE) {
-					units = "mV";
-			   	rangeString = "100mV";
-					rangeMode = 0x2;
-					
-				} else {
-					units = "mOhm";
-					rangeString = "100mOhm";
-				  rangeMode = 0x2;
-					
-				}
-				rangeValue = (100.0)/ SAMPLES_DEPTH;
-				break;
-			
-			case RANGE_ID_RANGE_10m:
-				if (MULTIMETER_MODE == MODE_CURRENT ) {
-					units = "mA";
-					rangeString = "10mA";
-					rangeMode = 0x2;
-					
-				} else if (MULTIMETER_MODE == MODE_VOLTAGE) {
-					units = "mV";
-			   	rangeString = "10mV";
-					rangeMode = 0x3;
-					
-				} else {
-					units = "mOhm";
-					rangeString = "10mOhm";
-				  rangeMode = 0x3;
-					
-				}
-				rangeValue = (1000.0)/ SAMPLES_DEPTH;
-				break;
-		}
+		state currentState = stateLookUp[MULTIMETER_MODE][range];
+		measurement = currentState.measurementString;
+		typeMode = currentState.typeMode;
+		rangeMode = currentState.rangeMode;
+		rangeString = currentState.rangeString;
+		units = currentState.unitString;
+		
+		selectMode(typeMode | rangeMode);
 		value = read_ADC1();
+		actualValue = retSignedValue(value, currentState.scalingFactor/maximInputVoltage);
 		
+		display_Measure(measurement, modeString, rangeString, units, actualValue);	
+		
+		//Set which menu to return to if the menu button is pressed.
 		switch(MULTIMETER_MODE){
 			
 			case MODE_VOLTAGE:
-				actualValue = retSignedValue(value, rangeValue);
-			  measurement = "Voltage";
-				typeMode = 0x2<<2;
+			  selectedMenu = MENU_ID_VOLTAGE_MANUAL_RANGE;
 				break;
 			
 			case MODE_CURRENT:
-				actualValue = value;  
-				measurement = "Current";
-			  typeMode = 0x1<<2;
 				selectedMenu = MENU_ID_CURRENT_MANUAL_RANGE;
 				break;
 			
 			case MODE_RESISTANCE:
-				actualValue = 3.3*value/(4096.0*0.000003);
-				measurement = "Resistance";
-				typeMode = 0x0<<2;
+			 selectedMenu = MENU_ID_RESISTANCE_MANUAL_RANGE;
 				break;
 			
-			default:  //default is MODE_Voltage
+			default:  // Default to voltage Mode
 				MULTIMETER_MODE = MODE_VOLTAGE;
 			  selectedMenu = MENU_ID_RESISTANCE_MANUAL_RANGE;
 				break;
-		}
-
-		selectMode(typeMode | rangeMode);
-		display_Measure(measurement, mode, rangeString, units, actualValue);
-				//	buzzerOn(1000);
-
-		if ( (value == SAMPLES_DEPTH) && (range == RANGE_ID_RANGE_10) ) {
-		}
-		
+		}		
 	}
 	
 	return selectedMenu;
 }
 
-//this checks if the reading value is postive or negative for measuring voltage and current 
+//Scales the adc reading to produce a meaningful measurement value.
 float retSignedValue(int readValue, float rangeValue) { 
-	
 	return (readValue * (3.3/4096.0) * rangeValue) -10; 
-	
-//	if( readValue >= (SAMPLES_DEPTH/2) ) {
-//		return readValue * (3.3/4096.0) * rangeValue /2.0f; // Devided by 2, as the rangeValue has been already diveded by SAMPLES_DEPTH 
-//	} else {
-//		return -readValue * (3.3/4096.0) * rangeValue / 2.0f; // Devided by 2, as the rangeValue has been already diveded by SAMPLES_DEPTH 
-//	}
 }

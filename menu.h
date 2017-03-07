@@ -1,9 +1,9 @@
 #ifndef __MENU_H
 #define __MENU_H
 
-#define  MODE_VOLTAGE 1
-#define  MODE_CURRENT 2
-#define  MODE_RESISTANCE 3
+#define  MODE_VOLTAGE 0
+#define  MODE_CURRENT 1
+#define  MODE_RESISTANCE 2
 
 #define SAMPLES_DEPTH 3972
 
@@ -25,10 +25,10 @@ typedef enum {
 
 
 typedef enum {
-	RANGE_ID_RANGE_10 = 3,	 //10 V, 1 A, 10 kohms 
-	RANGE_ID_RANGE_1 = 2,	//10 V, 1 A, 10 kohms
-	RANGE_ID_RANGE_100m = 1,
-	RANGE_ID_RANGE_10m = 0,
+	RANGE_ID_RANGE_10 = 0,	 
+	RANGE_ID_RANGE_1 = 1,
+	RANGE_ID_RANGE_100m = 2,
+	RANGE_ID_RANGE_10m = 3,
 } RangeIds;
 
 

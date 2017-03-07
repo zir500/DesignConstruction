@@ -48,7 +48,7 @@ int main(){
 	init_GPIOE();
 	//serial_init(); //either initButtons or serial_init should be commented as they are using the same port
 	
-	buzzerOn();
+	//buzzerOn();
 	//Run Multimeter
 	menu();
 	
