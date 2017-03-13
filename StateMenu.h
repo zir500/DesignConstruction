@@ -58,7 +58,7 @@ const state stateLookUp[10][10] = {
 			"Current",
 			"A",
 			"1 A",
-      2,
+      1,
       0x1<<2,
       0x0
     },
@@ -66,15 +66,15 @@ const state stateLookUp[10][10] = {
 			"Current",
 			"A",
 			"100 mA",
-      0.2,
+      0.1,
       0x1<<2,
       0x1
     },
-		{//RANGE_10mA
+		{//RANGE_1mA
 			"Current",
 			"A",
 			"10 mA",
-      0.02,
+      0.01,
       0x1<<2,
       0x2
     },

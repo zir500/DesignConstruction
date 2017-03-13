@@ -45,7 +45,7 @@ unsigned int read_ADC1 (void) {
 void display_Measure(char* measurement, char rangeMode, char* range, char* unit, float value){
 	
 	char dummyString[16]= {' '};
-char spaces[16] = "               ";
+  char spaces[16] = "               ";
 	sprintf(dummyString, "%s %c %s%s", measurement, rangeMode, range, spaces);
 	lcd_write_string(dummyString,0,0); 
 	

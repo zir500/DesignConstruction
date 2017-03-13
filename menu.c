@@ -8,12 +8,20 @@
 #include <stdlib.h>
 #include "ADC.h"
 #include "StateMenu.h"
+#include <stdio.h>
+#include <string.h>
+
 
 
 int MULTIMETER_MODE = MODE_VOLTAGE;
 
 
 #define SCROLL_RATE 400
+
+const float maximInputVoltage = 3.0; // The input voltage which represents a maximum reading.
+float maximumValue = 0.0;
+float minimumValue = 10.0;
+
 
 void scrollText(char message[], int messageLength){
 
@@ -123,19 +131,19 @@ RangeMenuSettings openManualCurrent() {
 	int buttonPressed = printAndWait("Current Manual", "1.1A  2.100mA 3.10mA ", buttonArray, size);
 	RangeMenuSettings selectedSettings;
 	selectedSettings.nextMenu = MENU_ID_MEASUREMENT;
-	selectedSettings.selectedRange = RANGE_ID_RANGE_10;
+	selectedSettings.selectedRange = RANGE_ID_RANGE_1;
 	
 	switch(buttonPressed) {
 
-		case 1:
+		case 0:
 			//manual range of 1 A
 			selectedSettings.selectedRange = RANGE_ID_RANGE_1;
 			break;
-		case 2:
+		case 1:
 			//manual range of 100 mA
 			selectedSettings.selectedRange = RANGE_ID_RANGE_100m;
 			break;
-		case 3:
+		case 2:
 			//manual range of 10 mA
 			selectedSettings.selectedRange = RANGE_ID_RANGE_10m;
 			break; 
@@ -240,6 +248,67 @@ MenuIds openMenu(){
 	return selectedMenu;
 }
 
+
+MenuIds openMaxMenu(){
+	
+	int button = 8;
+	int size = 1;
+		
+	char stringValue[16];
+	sprintf(stringValue, "%.4f", maximumValue);
+	
+	char stringMeasure[16];
+	
+	MenuIds selectedMenu = MENU_ID_MEASUREMENT; 
+		switch(MULTIMETER_MODE) {
+			case MODE_VOLTAGE: 
+				strncpy(stringMeasure, "Maximum Voltage", 15); 
+				break;
+			
+			case MODE_CURRENT:
+				strncpy(stringMeasure, "Maximum Current", 15); 
+				break;
+			
+			case MODE_RESISTANCE:
+				strncpy(stringMeasure, "Maximum Resist.", 15); 
+				break;
+		}
+		
+	int buttonPressed = printAndWait(stringMeasure, stringValue, &button, size);
+	
+	return selectedMenu;
+}
+
+MenuIds openMinMenu(){
+	
+	int button = 8;
+	int size = 1;
+		
+	char stringValue[16];
+	sprintf(stringValue, "%.4f", minimumValue);
+	
+	char stringMeasure[16];
+	
+	MenuIds selectedMenu = MENU_ID_MEASUREMENT; 
+		switch(MULTIMETER_MODE) {
+			case MODE_VOLTAGE: 
+				strncpy(stringMeasure, "Minimum Voltage", 15); 
+				break;
+			
+			case MODE_CURRENT:
+				strncpy(stringMeasure, "Minimum Current", 15); 
+				break;
+			
+			case MODE_RESISTANCE:
+				strncpy(stringMeasure, "Minimum Resist.", 15); 
+				break;
+		}
+	
+	int buttonPressed = printAndWait(stringMeasure, stringValue, &button, size);
+	
+	return selectedMenu;
+}
+
 int printAndWait(char firstLineString[], char* secondLineString, int buttons[], int size) {
 		
 	lcd_write_string(firstLineString, 0, 0);
@@ -278,9 +347,8 @@ void menu(){
 		switch (selectedMenuID) {
 			
 			case MENU_ID_MEASUREMENT:
-				LED_Out(0);
+				LED_Out(96);
 				selectedMenuID = measurementMenu(autoRange, selectedSettings.selectedRange);
-			//	selectedMenuID = MENU_ID_VOLTAGE_MANUAL_RANGE;
 				break; 
 			
 			case MENU_ID_OPEN:
@@ -356,12 +424,22 @@ void menu(){
 				autoRange = 1; 
 				break;
 			
+			case MENU_ID_MIN:
+				LED_Out(0);
+				selectedMenuID = openMinMenu();
+				break;
+			
+			case MENU_ID_MAX:
+				LED_Out(0);
+				selectedMenuID = openMaxMenu();
+				break;
+			
 			default:
 				selectedMenuID = MENU_ID_MEASUREMENT;
 				autoRange = 1; 
 				break;
 		}	
-	}
+	}	
 }
 
 RangeIds autoRanging(RangeIds currentRange) {
@@ -376,18 +454,23 @@ RangeIds autoRanging(RangeIds currentRange) {
 	return currentRange;
 }
 
+
 MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 	
-	int buttonArray = 8;
-	int size = 1;
+	int buttonArray[3] = {5,6,8};	// What button to listen for.
+	int size = 3;					//Number of buttons to listen for.
 	MenuIds selectedMenu = MENU_ID_VOLTAGE_MANUAL_RANGE; 
 	
 	char* measurement = "";
 	
-	const double maximInputVoltage = 3.01; // The voltage which represents a maximum reading in the range
+	int buttonPressed = -1;
 	
-	while(DelayForButton(300, &buttonArray, size) !=  8){
+	maximumValue = 0.0;
+  minimumValue = 10.0;
+	
+	while( buttonPressed !=  8){
 
+		//TODO take the variable init out of the loop
 		unsigned int value; // Raw value measured from ADC (0-4096)
 		float actualValue; // Actual value being represented by the input (eg 100 mA)
 		
@@ -398,50 +481,78 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 		unsigned int rangeMode = 0x3;	//range Control signal.
 		unsigned int typeMode = 0x3<<2; //Measurement type control signal (Eg. Are we measuring current?)
 		
-		if (isAutoRangeOn == 1) {
-			range = autoRanging(range);
-			modeString = 'A';
+		buttonPressed = DelayForButton(300, buttonArray, size);
+		
+		if (buttonPressed == 6) { 
+			return MENU_ID_MAX; //go to the maximum menu
+		} else if (buttonPressed == 5) {
+			return MENU_ID_MIN; //go to the minimum menu
+		} else {
+		
+			if (isAutoRangeOn == 1) {
+				range = autoRanging(range);
+				modeString = 'A';
+			}
+			
+			state currentState = stateLookUp[MULTIMETER_MODE][range];
+			measurement = currentState.measurementString;
+			typeMode = currentState.typeMode;
+			rangeMode = currentState.rangeMode;
+			rangeString = currentState.rangeString;
+			units = currentState.unitString;
+			
+			selectMode(typeMode | rangeMode);
+			value = read_ADC1();
+			actualValue = retSignedValue(value, currentState.scalingFactor);
+			
+			if (actualValue > maximumValue) {
+				maximumValue = actualValue;
+			}
+			
+			if (actualValue < minimumValue) {
+				minimumValue = actualValue;
+			}
+			
+			display_Measure(measurement, modeString, rangeString, units, actualValue);	
+			
+			//Set which menu to return to if the menu button is pressed.
+			switch(MULTIMETER_MODE){
+				
+				case MODE_VOLTAGE:
+					selectedMenu = MENU_ID_VOLTAGE_MANUAL_RANGE;
+					break;
+				
+				case MODE_CURRENT:
+					selectedMenu = MENU_ID_CURRENT_MANUAL_RANGE;
+					break;
+				
+				case MODE_RESISTANCE:
+				 selectedMenu = MENU_ID_RESISTANCE_MANUAL_RANGE;
+					break;
+				
+				default:  // Default to voltage Mode
+					MULTIMETER_MODE = MODE_VOLTAGE;
+					selectedMenu = MENU_ID_RESISTANCE_MANUAL_RANGE;
+					break;
+			}		
 		}
-		
-		state currentState = stateLookUp[MULTIMETER_MODE][range];
-		measurement = currentState.measurementString;
-		typeMode = currentState.typeMode;
-		rangeMode = currentState.rangeMode;
-		rangeString = currentState.rangeString;
-		units = currentState.unitString;
-		
-		selectMode(typeMode | rangeMode);
-		value = read_ADC1();
-		actualValue = retSignedValue(value, currentState.scalingFactor/maximInputVoltage);
-		
-		display_Measure(measurement, modeString, rangeString, units, actualValue);	
-		
-		//Set which menu to return to if the menu button is pressed.
-		switch(MULTIMETER_MODE){
-			
-			case MODE_VOLTAGE:
-			  selectedMenu = MENU_ID_VOLTAGE_MANUAL_RANGE;
-				break;
-			
-			case MODE_CURRENT:
-				selectedMenu = MENU_ID_CURRENT_MANUAL_RANGE;
-				break;
-			
-			case MODE_RESISTANCE:
-			 selectedMenu = MENU_ID_RESISTANCE_MANUAL_RANGE;
-				break;
-			
-			default:  // Default to voltage Mode
-				MULTIMETER_MODE = MODE_VOLTAGE;
-			  selectedMenu = MENU_ID_RESISTANCE_MANUAL_RANGE;
-				break;
-		}		
 	}
-	
 	return selectedMenu;
 }
 
+const float ADC_VREF = 3.0;
+
 //Scales the adc reading to produce a meaningful measurement value.
 float retSignedValue(int readValue, float rangeValue) { 
-	return (readValue * (3.3/4096.0) * rangeValue) -10; 
+	float retValue;
+	float maxUsableDivisions = (4096.0f/ADC_VREF) * maximInputVoltage;
+	
+	if ( MULTIMETER_MODE == MODE_VOLTAGE ) {
+			retValue = (readValue * (ADC_VREF/4096.0f) * rangeValue/maximInputVoltage) - (rangeValue/2.0f);
+		//	retValue = (readValue * (ADC_VREF/4096.0f));//NOTE we thing the vfref for the ad is actually 3 v not 3.3 so we have changes this.
+	} else {
+		retValue = (readValue * (ADC_VREF/4096.0f) * rangeValue/maximInputVoltage);
+	}
+	
+	return retValue;
 }
