@@ -4,6 +4,10 @@
 #include "stm32f4xx.h"
 #include "LED.h"
 
+void send_packet(char* packet, char length){
+	printf("%d%s", length, packet);
+}
+
 static void _configUSART2(uint32_t BAUD)
 {
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
@@ -33,15 +37,4 @@ void serial_init(void) {
 	_configUSART2(38400);
 }
 
-//Test function for now
-void listen_port(){
-	
-	while(1) {
-		
-		if(USART2->SR & USART_SR_RXNE){
-			char recieved = (char)USART2->DR;
-			printf("\n %c", recieved);
-			 LED_On(1);
-	}
-}
-}
+
