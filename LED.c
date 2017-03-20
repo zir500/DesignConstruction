@@ -109,7 +109,8 @@ void LED_Off (unsigned int num) {
 void LED_Out(unsigned int value) {
   int i;
 
-  for (i = 0; i < LED_NUM; i++) {
+  for (i = 0; i < LED_NUM-1; i++) {
+		//-1 because we don't check the 8th LED as it should always be on
     if (value & (1<<i)) {
       LED_On (i);
     } else {

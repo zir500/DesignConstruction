@@ -10,8 +10,8 @@
 	void Delay (uint32_t dlyTicks);
 	int DelayForButton (uint32_t dlyTicks, int buttons[], int size);
 	uint32_t BTN_Get(void);
-	void outputSignalON(unsigned int Switch);
-  void outputSignalOFF(unsigned int Switch);
+	void outputSignalON(unsigned int gpio_no);
+  void outputSignalOFF(unsigned int gpio_no);
 	void waitForRelease(void);
 	void selectMode(unsigned int mode);
 	void buzzerOn(void);

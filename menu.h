@@ -26,7 +26,7 @@ typedef enum {
 	MENU_ID_MIN,
 }MenuIds;
 
-
+//TODO rename 
 typedef enum {
 	RANGE_ID_RANGE_10 = 0,	 
 	RANGE_ID_RANGE_1 = 1,

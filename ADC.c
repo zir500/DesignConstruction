@@ -41,7 +41,10 @@ unsigned int read_ADC1 (void) {
 	return (ADC1->DR);
 }
 
-/*function that displays a text and integer on separate lines of the LCD*/
+/*function that displays a text and integer on separate lines of the LCD
+Note: the string written on the screen has to be less or to 16 characters, 
+otherwise the program crashes 
+*/
 void display_Measure(char* measurement, char rangeMode, char* range, char* unit, float value){
 	
 	char dummyString[16]= {' '};

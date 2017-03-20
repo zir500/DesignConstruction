@@ -33,17 +33,10 @@ int DelayForButton (uint32_t dlyTicks, int buttons[], int size) {
 	int i=0;
   while ((msTicks - curTicks) < dlyTicks){
 			for (i=0; i<=size-1; i++){
-				if (buttons[i] != 8) {
 					if (SWT_Check(buttons[i])){
 						return buttons[i]; 
-					}
-					
-				} else {
-					if (BTN_Get()) {
-						return 8;
-					}
-				}
-		}
+				} 
+			}
 	}
 	return -1;
 }
@@ -107,46 +100,80 @@ void init_GIPOB(){
 }
 
 /*----------------------------------------------------------------------------
-   turns a GPIO on
+   turns a GPIOE on
  *----------------------------------------------------------------------------*/
-void outputSignalON(unsigned int Switch) {
-	GPIOB->BSRR = (1U << Switch); 
+void outputSignalON(unsigned int gpio_no) {
+	GPIOE->BSRR = (1U << gpio_no); 
 }
 
 /*----------------------------------------------------------------------------
-   turns a GPIO off
+   turns a GPIOE off
  *----------------------------------------------------------------------------*/
-void outputSignalOFF(unsigned int Switch) {
-		GPIOB->BSRR = (1U << Switch) << 16; 
+void outputSignalOFF(unsigned int gpio_no) {
+		GPIOE->BSRR = (1U << gpio_no) << 16; 
 }
 
 void selectMode(unsigned int mode) {
 
-	if (mode == 0xF) { //default mode, enable = 0
+	if (mode == 0xF) { //default mode, enable = 0, all control signals 0
+		outputSignalOFF(3);
 		outputSignalOFF(4);
 		outputSignalOFF(5);
+		outputSignalOFF(6);
 		outputSignalOFF(7);
-		outputSignalOFF(8);
-		outputSignalOFF(15);
 	} else {
-		outputSignalON(0xF);
+		//outputSignalON(0xF ); //turn on the enable signal
 		
-		GPIOB->ODR |= (mode & 0x3) << 4;
-		GPIOB->ODR |= (mode & (0x3<<2)) << 5;
-
+		//turn on the desired control signals
+		GPIOE->ODR |= mode << 3;
 	}
 }
 
 void init_GPIOE(){
-	RCC->AHB1ENR  |= RCC_AHB1ENR_GPIOEEN;         /* Enable GPIOE clock        */
+	RCC->AHB1ENR  |= RCC_AHB1ENR_GPIOEEN;     /* Enable GPIOE clock        */
 
-  GPIOE->MODER    &= ~((3UL <<  2* 3) );   /* PE.3 is output               */
-  GPIOE->MODER    |=  ((1UL <<  2* 3) ); 
-  GPIOE->OTYPER   &= ~((1UL <<     3) );   /* PE 3 is output Push-Pull     */
-  GPIOE->OSPEEDR  &= ~((3UL << 2* 3)  );   /* PE.3,50MHz Fast Speed       */
-  GPIOE->OSPEEDR  |=  ((2UL << 2* 3)  ); 
-  GPIOE->PUPDR    &= ~((3UL << 2* 3)  );   /* PE.3 is Pull up             */
-  GPIOE->PUPDR    |=  ((1UL << 2* 3)  ); 
+  GPIOE->MODER    &= ~(	(3UL <<  2* 3) |
+												(3UL <<  2* 4) |
+												(3UL <<  2* 5) |
+												(3UL <<  2* 6) |
+												(3UL <<  2* 7) );   /* PE. 4..7 is output       */
+	
+	GPIOE->MODER    |=  (	(1UL <<  2* 3) |
+												(1UL <<  2* 4) |
+												(1UL <<  2* 5) |
+												(1UL <<  2* 6) |
+												(1UL <<  2* 7) );  
+	
+	GPIOE->OSPEEDR  &= ~(	(3UL <<  2* 3) |
+												(3UL <<  2* 4) |
+												(3UL <<  2* 5) |
+												(3UL <<  2* 6) |
+												(3UL <<  2* 7) );   /* PE.3..8 50MHz Fast Speed */
+	
+	GPIOE->OSPEEDR  |=  (	(2UL <<  2* 3) |
+												(2UL <<  2* 4) |
+												(2UL <<  2* 5) |
+												(2UL <<  2* 6) |
+												(2UL <<  2* 7) ); 
+	
+	GPIOE->PUPDR    &= ~( (3UL <<  2* 3) |
+												(3UL <<  2* 4) |
+												(3UL <<  2* 5) |
+												(3UL <<  2* 6) |
+												(3UL <<  2* 7) );   /* PE.3..8 is Pull up       */
+												
+	GPIOE->PUPDR    |=  ( (1UL <<  2* 3) |
+												(1UL <<  2* 4) |
+												(1UL <<  2* 5) |
+												(1UL <<  2* 6) |
+												(1UL <<  2* 7) );
+
+
+  GPIOE->OTYPER   &= ~( (1UL <<  2* 3) |
+												(1UL <<  2* 4) |
+												(1UL <<  2* 5) |
+												(1UL <<  2* 6) |
+												(1UL <<  2* 7) );   /* PE 3 is output Push-Pull  */
 }
 
 //turn on the buzzer for a specified number of milli-seconds 

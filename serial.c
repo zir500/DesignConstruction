@@ -5,7 +5,7 @@
 #include "LED.h"
 
 void send_packet(char* packet, char length){
-	printf("%d%s", length, packet);
+	printf("%s\n", packet);
 }
 
 static void _configUSART2(uint32_t BAUD)

@@ -35,7 +35,7 @@ void scrollText(char message[], int messageLength){
 MenuIds openVoltageMenu(){
 	
 	MULTIMETER_MODE = MODE_VOLTAGE;
-	int buttonArray[3] = {0,1,8};
+	int buttonArray[3] = {0,1,7};
 	int size = 3;
 	int buttonPressed = printAndWait("Select options", "1.Manual Range    2.Auotmatic Range ", buttonArray, size);
 	MenuIds selectedMenu = MENU_ID_MEASUREMENT; 
@@ -47,7 +47,7 @@ MenuIds openVoltageMenu(){
 		case 1:
 			selectedMenu = MENU_ID_VOLTAGE_AUTO_RANGE;
 			break;
-		case 8:
+		case 7:
 			selectedMenu = MENU_ID_OPEN;
 			break;
 	}
@@ -58,7 +58,7 @@ MenuIds openVoltageMenu(){
 RangeMenuSettings openManualVoltage() {
 
 	MULTIMETER_MODE = MODE_VOLTAGE;
-	int buttonArray[5] = {0,1,2,3,8};
+	int buttonArray[5] = {0,1,2,3,7};
 	int size = 5;
 	
 	selectMode(0xF);
@@ -85,7 +85,7 @@ RangeMenuSettings openManualVoltage() {
 			//manual range of 10 mV
 			selectedSettings.selectedRange = RANGE_ID_RANGE_10m;
 			break; 
-		case 8:
+		case 7:
 			selectedSettings.nextMenu = MENU_ID_VOLTAGE;
 			break;
 	}
@@ -97,7 +97,7 @@ MenuIds openCurrentMenu(){
 	
 	MULTIMETER_MODE = MODE_CURRENT;
 	
-	int buttonArray[3] = {0,1,8};
+	int buttonArray[3] = {0,1,7};
 	int size = 3;
 	
 	int buttonPressed = printAndWait("Select options", "1.Manual Range    2.Auotmatic Range ", buttonArray, size);
@@ -112,7 +112,7 @@ MenuIds openCurrentMenu(){
 			selectedMenu = MENU_ID_CURRENT_AUTO_RANGE;
 			break;
 		
-		case 8:
+		case 7:
 			selectedMenu = MENU_ID_OPEN;
 			break;
 	}
@@ -123,7 +123,7 @@ MenuIds openCurrentMenu(){
 RangeMenuSettings openManualCurrent() {
 	
 	MULTIMETER_MODE = MODE_CURRENT;
-	int buttonArray[4] = {0,1,2,8};
+	int buttonArray[4] = {0,1,2,7};
 	int size = 4;
 	
 	selectMode(0xF);
@@ -147,7 +147,7 @@ RangeMenuSettings openManualCurrent() {
 			//manual range of 10 mA
 			selectedSettings.selectedRange = RANGE_ID_RANGE_10m;
 			break; 
-		case 8:
+		case 7:
 			selectedSettings.nextMenu = MENU_ID_CURRENT;
 			break;
 	}
@@ -160,7 +160,7 @@ MenuIds openResistanceMenu(){
 	
 	MULTIMETER_MODE = MODE_RESISTANCE;
 	
-	int buttonArray[3] = {0,1,8};
+	int buttonArray[3] = {0,1,7};
 	int size = 3;
 	int buttonPressed = printAndWait("Select options", " 1.Manual Range    2.Auotmatic Range ", buttonArray, size);
 	MenuIds selectedMenu = MENU_ID_MEASUREMENT; 
@@ -174,7 +174,7 @@ MenuIds openResistanceMenu(){
 			selectedMenu = MENU_ID_RESISTANCE_AUTO_RANGE;
 			break;
 		
-		case 8:
+		case 7:
 			selectedMenu = MENU_ID_OPEN;
 			break;
 	}
@@ -185,34 +185,34 @@ MenuIds openResistanceMenu(){
 RangeMenuSettings openManualResistance() {
 	
 	MULTIMETER_MODE = MODE_RESISTANCE;
-	int buttonArray[5] = {0,1,2,3,8};
+	int buttonArray[5] = {0,1,2,3,7};
 	int size = 5;
 	
 	selectMode(0xF);
 	
-	int buttonPressed = printAndWait("Resistance Manual", "1.1kOhm  2.10kOhm 3.100kOhm 4.1MOhm ", buttonArray, size);
+	int buttonPressed = printAndWait("Resistance Manual", "1.1MOhm 2.100kOhm 3.10kOhm 4.1kOhm ", buttonArray, size);
 	RangeMenuSettings selectedSettings;
 	selectedSettings.nextMenu = MENU_ID_MEASUREMENT;
 	selectedSettings.selectedRange = RANGE_ID_RANGE_10;
 	
 	switch(buttonPressed) {
 		case 0: 
-			//manual range of 1kOhm
-			selectedSettings.selectedRange = RANGE_ID_RANGE_1;
-			break;
-		case 1:
-			//manual range of 10kOhm
+			//manual range of 1MOhm
 			selectedSettings.selectedRange = RANGE_ID_RANGE_10;
 			break;
-		case 2:
+		case 1:
 			//manual range of 100kOhm
+			selectedSettings.selectedRange = RANGE_ID_RANGE_1;
+			break;
+		case 2:
+			//manual range of 10kOhm
 			selectedSettings.selectedRange = RANGE_ID_RANGE_100m;
 			break;
 		case 3:
-			//manual range of 1MOhm
-			selectedSettings.selectedRange = RANGE_ID_RANGE_10m;
+			//manual range of 1kOhm
+		  selectedSettings.selectedRange = RANGE_ID_RANGE_10m;
 			break; 
-		case 8:
+		case 7:
 			selectedSettings.nextMenu = MENU_ID_RESISTANCE;
 			break;
 	}
@@ -223,7 +223,7 @@ RangeMenuSettings openManualResistance() {
 
 MenuIds openMenu(){
 
-	int buttonArray[4] = {0,1,2,8};
+	int buttonArray[4] = {0,1,2,7};
 	int size = 4;
 	int buttonPressed = printAndWait("Select Function", " 1.Voltage   2.Current   3.Resistance ", buttonArray, size);
 	
@@ -241,7 +241,7 @@ MenuIds openMenu(){
 			selectedMenu =  MENU_ID_RESISTANCE;
 			break;
 		
-		case 8:
+		case 7:
 			selectedMenu = MENU_ID_MEASUREMENT; //GO TO measuerment menu
 			break;
 	}
@@ -251,7 +251,7 @@ MenuIds openMenu(){
 
 MenuIds openMaxMenu(){
 	
-	int button = 8;
+	int button = 7;
 	int size = 1;
 		
 	char stringValue[16];
@@ -281,7 +281,7 @@ MenuIds openMaxMenu(){
 
 MenuIds openMinMenu(){
 	
-	int button = 8;
+	int button = 7;
 	int size = 1;
 		
 	char stringValue[16];
@@ -343,7 +343,8 @@ void menu(){
 		
 		waitForRelease();
 		lcd_clear_display();
-		
+		LED_On(7);
+
 		switch (selectedMenuID) {
 			
 			case MENU_ID_MEASUREMENT:
@@ -457,7 +458,7 @@ RangeIds autoRanging(RangeIds currentRange) {
 
 MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 	
-	int buttonArray[3] = {5,6,8};	// What button to listen for.
+	int buttonArray[3] = {5,6,7};	// What button to listen for.
 	int size = 3;					//Number of buttons to listen for.
 	MenuIds selectedMenu = MENU_ID_VOLTAGE_MANUAL_RANGE; 
 	
@@ -468,18 +469,20 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 	maximumValue = 0.0;
   minimumValue = 10.0;
 	
-	while( buttonPressed !=  8){
+	unsigned int value; // Raw value measured from ADC (0-4096)
+	float actualValue; // Actual value being represented by the input (eg 100 mA)
+	
+	while( buttonPressed !=  7){
 
 		//TODO take the variable init out of the loop
-		unsigned int value; // Raw value measured from ADC (0-4096)
-		float actualValue; // Actual value being represented by the input (eg 100 mA)
+
 		
 		char* units; // The Units of the current value to be displayed.
 		char* rangeString;// The range (and units) of this measurement.
 		char modeString = 'M';// Indicated which mode the multimeter is in (Auto-range or manual).
 		
-		unsigned int rangeMode = 0x3;	//range Control signal.
-		unsigned int typeMode = 0x3<<2; //Measurement type control signal (Eg. Are we measuring current?)
+		unsigned int rangeMode ;	//range Control signal.
+		unsigned int typeMode ; //Measurement type control signal (Eg. Are we measuring current?)
 		
 		buttonPressed = DelayForButton(300, buttonArray, size);
 		
@@ -501,7 +504,7 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 			rangeString = currentState.rangeString;
 			units = currentState.unitString;
 			
-			selectMode(typeMode | rangeMode);
+			selectMode( typeMode | (rangeMode<<2));
 			value = read_ADC1();
 			actualValue = retSignedValue(value, currentState.scalingFactor);
 			
@@ -518,6 +521,7 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 			//Set which menu to return to if the menu button is pressed.
 			switch(MULTIMETER_MODE){
 				
+				default:
 				case MODE_VOLTAGE:
 					selectedMenu = MENU_ID_VOLTAGE_MANUAL_RANGE;
 					break;
@@ -527,11 +531,6 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 					break;
 				
 				case MODE_RESISTANCE:
-				 selectedMenu = MENU_ID_RESISTANCE_MANUAL_RANGE;
-					break;
-				
-				default:  // Default to voltage Mode
-					MULTIMETER_MODE = MODE_VOLTAGE;
 					selectedMenu = MENU_ID_RESISTANCE_MANUAL_RANGE;
 					break;
 			}		

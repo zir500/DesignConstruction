@@ -16,7 +16,7 @@ const state stateLookUp[10][10] = {
 			"V",
 			"10 V",
       20,
-      0x2<<2,
+      0x2,
       0x0
     },
 		{//RANGE_1v
@@ -24,7 +24,7 @@ const state stateLookUp[10][10] = {
 			"V",
 			"1 V",
       2,
-      0x2<<2,
+      0x2,
       0x1
     },
 		{//RANGE_100mv
@@ -32,7 +32,7 @@ const state stateLookUp[10][10] = {
 			"mV",
 			"100 mV",
       0.2,
-      0x2<<2,
+      0x2,
       0x2
     },
 		{//RANGE_10mv
@@ -40,8 +40,16 @@ const state stateLookUp[10][10] = {
 			"mV",
 			"10 mV",
       0.02,
-      0x2<<2,
+      0x2,
       0x3
+    },
+		{//RANGE_10mv
+			"Voltage",
+			"mV",
+			"10 mV",
+      0.002,
+      0x2,
+      0x4
     },
   },
 	
@@ -59,7 +67,7 @@ const state stateLookUp[10][10] = {
 			"A",
 			"1 A",
       1,
-      0x1<<2,
+      0x1,
       0x0
     },
 		{//RANGE_100mA
@@ -67,7 +75,7 @@ const state stateLookUp[10][10] = {
 			"A",
 			"100 mA",
       0.1,
-      0x1<<2,
+      0x1,
       0x1
     },
 		{//RANGE_1mA
@@ -75,42 +83,42 @@ const state stateLookUp[10][10] = {
 			"A",
 			"10 mA",
       0.01,
-      0x1<<2,
+      0x1,
       0x2
     },
   },
 	
 	{ //Resistance 
 		{//RANGE 1Mohm
-			"Resistance",
+			"Resist",
 			"Mohm",
 			"1 Mohm",
 			1,
-			0x0<<2,
+			0x0,
 			0x0
 		},
 		{//RANGE 100kohm
-			"Resistance",
+			"Resis",
 			"kohm",
 			"100 kohm",
 			100,
-			0x0<<2,
+			0x0,
 			0x1
 		},
 		{//RANGE 10kohm
-			"Resistance",
+			"Resist",
 			"kohm",
 			"10 kohm",
 			10,
-			0x0<<2,
+			0x0,
 			0x2
 		},
 		{//RANGE 1kohm
-			"Resistance",
+			"Resist",
 			"kohm",
 			"1 kohm",
 			1,
-			0x0<<2,
+			0x0,
 		0x3
 		}
 	}

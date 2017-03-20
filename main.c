@@ -21,20 +21,6 @@ void initLCD(){
 }
 
 
-void initButtons(){
-	
-  //user button 
-	 RCC->AHB1ENR  |= ((1UL <<  0) );              /* Enable GPIOA clock         */
-
-  GPIOA->MODER    &= ~((3UL << 2*0)  );         /* PA.0 is input              */
-  GPIOA->OSPEEDR  &= ~((3UL << 2*0)  );         /* PA.0 is 50MHz Fast Speed   */
-  GPIOA->OSPEEDR  |=  ((2UL << 2*0)  ); 
-  GPIOA->PUPDR    &= ~((3UL << 2*0)  );         /* PA.0 is no Pull up         */
-	
-  SWT_Init();
-}	
-
-
 
 //Test function for now
 void listen_port_test(){
@@ -59,9 +45,9 @@ void listen_port_test(){
 					}
 				}
 				//Entire message received, append a string temination for convinience.
-				receivedString[numChars] = '\0';
+				receivedString[numChars] = '\0'; 
 
-					send_packet("ack", 3);
+				send_packet("ack", 3);
 				//DEBUG
 				lcd_clear_display();
 				lcd_write_string(receivedString, 1, 0);
@@ -81,7 +67,7 @@ int main(){
 		
 	//Initialisers
 	initLCD();
-	//initButtons();
+	SWT_Init();
 	LED_Init();
 	init_GIPOB();
 	ADC1_init();
@@ -90,7 +76,7 @@ int main(){
 	serial_init(); //either initButtons or serial_init should be commented as they are using the same port
 
 		//printf("START");
-	listen_port_test();
+	//listen_port_test();
 	
 	/*uint32_t counter = 0;
 	while(1) {
@@ -102,7 +88,7 @@ int main(){
 	
 	//buzzerOn();
 	//Run Multimeter
-	//menu();
+	menu();
 	
 	return 0;
 }
