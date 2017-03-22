@@ -32,6 +32,7 @@ typedef enum {
 	RANGE_ID_RANGE_1 = 1,
 	RANGE_ID_RANGE_100m = 2,
 	RANGE_ID_RANGE_10m = 3,
+	RANGE_ID_RANGE_1mV = 4,
 } RangeIds;
 
 

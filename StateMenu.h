@@ -43,10 +43,10 @@ const state stateLookUp[10][10] = {
       0x2,
       0x3
     },
-		{//RANGE_10mv
+		{//RANGE_1mv
 			"Voltage",
 			"mV",
-			"10 mV",
+			"1 mV",
       0.002,
       0x2,
       0x4

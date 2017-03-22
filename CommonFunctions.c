@@ -52,6 +52,7 @@ uint32_t BTN_Get(void) {
  *----------------------------------------------------------------------------*/
 void waitForRelease() {
 		
+	//TODO remove BTN_GET()
 	while (SWT_Get() || BTN_Get()){};
 }
 

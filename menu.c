@@ -58,12 +58,12 @@ MenuIds openVoltageMenu(){
 RangeMenuSettings openManualVoltage() {
 
 	MULTIMETER_MODE = MODE_VOLTAGE;
-	int buttonArray[5] = {0,1,2,3,7};
-	int size = 5;
+	int buttonArray[6] = {0,1,2,3,4,7};
+	int size = 6;
 	
 	selectMode(0xF);
 	
-	int buttonPressed = printAndWait("Voltage Manual", " 1.10V  2.1V  3.100mV 4.10mV ", buttonArray, size);
+	int buttonPressed = printAndWait("Voltage Manual", " 1.10V  2.1V  3.100mV 4.10mV 5.1mV ", buttonArray, size);
 	RangeMenuSettings selectedSettings;
 	selectedSettings.nextMenu = MENU_ID_MEASUREMENT;
 	selectedSettings.selectedRange = RANGE_ID_RANGE_10;
@@ -85,6 +85,10 @@ RangeMenuSettings openManualVoltage() {
 			//manual range of 10 mV
 			selectedSettings.selectedRange = RANGE_ID_RANGE_10m;
 			break; 
+		case 4:
+			//manual range of 1mV
+			selectedSettings.selectedRange = RANGE_ID_RANGE_1mV;
+			break;
 		case 7:
 			selectedSettings.nextMenu = MENU_ID_VOLTAGE;
 			break;
@@ -365,7 +369,7 @@ void menu(){
 			case MENU_ID_VOLTAGE_MANUAL_RANGE:
 				//manual range for Current
 				//go to select range menu
-				LED_Out(15);
+				LED_Out(31);
 				selectedSettings = openManualVoltage();	
 				selectedMenuID = selectedSettings.nextMenu;
 			  autoRange = 0; 
@@ -445,13 +449,47 @@ void menu(){
 
 RangeIds autoRanging(RangeIds currentRange) {
 	
-	int value = read_ADC1();
+	RangeIds upperLimit;
+	RangeIds lowerLimit;
+	
+	switch(MULTIMETER_MODE) {
 		
-	if (value >= SAMPLES_DEPTH && currentRange != RANGE_ID_RANGE_10) {
-		currentRange--;
-	} else if (value <= 10 && currentRange != RANGE_ID_RANGE_10m) {
-		currentRange++;
+		default:
+		case MODE_VOLTAGE:
+			upperLimit = RANGE_ID_RANGE_10;
+			lowerLimit = RANGE_ID_RANGE_1mV;
+			break;
+		case MODE_CURRENT:
+			upperLimit = RANGE_ID_RANGE_1;
+			lowerLimit = RANGE_ID_RANGE_10m;
+			break;
+		case MODE_RESISTANCE:
+			upperLimit = RANGE_ID_RANGE_10;
+			lowerLimit = RANGE_ID_RANGE_10m;
+			break; 
 	}
+
+	int value = read_ADC1();
+	
+	if (MULTIMETER_MODE == MODE_VOLTAGE) {
+		
+		// (2048 + 410, 2048 - 410) represents the acceptable band
+		// if it is outside this, change to a more precise range
+		if ( (value < 2048 + 410) && (value > 2048 - 410) && currentRange != lowerLimit) {
+			currentRange++;
+		} else if ( ( (value > 4096 - 10) || (value < 10) ) &&  (currentRange != upperLimit) ) { //let some error interval
+			currentRange--;
+		}
+		
+	} else {
+	
+			if (value >= SAMPLES_DEPTH && currentRange != upperLimit) {
+				currentRange--;
+			} else if (value <= 410 && currentRange != lowerLimit) { //410 represents the next range available
+				currentRange++;
+			}
+	}
+	
 	return currentRange;
 }
 
