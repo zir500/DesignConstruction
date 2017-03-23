@@ -86,7 +86,7 @@ int main(){
 	}*/
 	
 	
-	//buzzerOn();
+	buzzerOn();
 	//Run Multimeter
 	menu();
 	

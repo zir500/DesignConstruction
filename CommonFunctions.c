@@ -65,68 +65,85 @@ void init_GIPOB(){
 
   GPIOB->MODER    &= ~((3UL <<  2* 4) |		//TODO: Check whether there are constants to initialise these registers
                        (3UL <<  2* 5) |
-                       (3UL <<  2*7) |
-											 (3UL <<  2*8) |
+                       (3UL <<  2* 7) |
+											 (3UL <<  2* 8) |
 											 (3UL <<  2*15) );   /* PB.4,5,7,8, 15 is output               */
   GPIOB->MODER    |=  ((1UL <<  2* 4) |
                        (1UL <<  2* 5) | 
-                       (1UL <<  2*7) |
-											 (1UL <<  2*8) |
-											 (1UL <<  2*15)); 
+                       (1UL <<  2* 7) |
+											 (1UL <<  2* 8) |
+											 (1UL <<  2*15) ); 
   GPIOB->OTYPER   &= ~((1UL <<    4) |
                        (1UL <<    5) |
                        (1UL <<    7) |
 											 (1UL <<    8) |
-											 (1UL <<  	15));   /* PB 4,5,7,8, 15 is output Push-Pull     */
+											 (1UL <<  15)  );   /* PB 4,5,7,8, 15 is output Push-Pull     */
   GPIOB->OSPEEDR  &= ~((3UL << 2* 4) |
                        (3UL << 2* 5) |
                        (3UL << 2* 7) |
-											 (3UL << 2*8) |
-											 (3UL << 2*15));   /* PB.4,5,7,8, 15 is 50MHz Fast Speed     */
+											 (3UL << 2* 8) |
+											 (3UL << 2*15) );   /* PB.4,5,7,8, 15 is 50MHz Fast Speed     */
   GPIOB->OSPEEDR  |=  ((2UL << 2* 4) |
                        (2UL << 2* 5) | 
                        (2UL << 2* 7) |
-											 (2UL << 2*8) 	|
-											 (2UL << 2*15)); 
+											 (2UL << 2* 8) |
+											 (2UL << 2*15) ); 
   GPIOB->PUPDR    &= ~((3UL << 2* 4) |
                        (3UL << 2* 5) |
                        (3UL << 2* 7) |
-											 (3UL << 2*8) |
-											 (3UL << 2*15));   /* PB.4,5,7,8,15 is Pull up              */
+											 (3UL << 2* 8) |
+											 (3UL << 2*15) );   /* PB.4,5,7,8,15 is Pull up              */
   GPIOB->PUPDR    |=  ((1UL << 2* 4) |
                        (1UL << 2* 5) | 
                        (1UL << 2* 7) |
-											 (1UL << 2* 8)  |
-											 (1UL <<  2*15)); 
+											 (1UL << 2* 8) |
+											 (1UL << 2*15) ); 
 }
 
 /*----------------------------------------------------------------------------
    turns a GPIOE on
  *----------------------------------------------------------------------------*/
-void outputSignalON(unsigned int gpio_no) {
+void GPIOE_SignalON(unsigned int gpio_no) {
 	GPIOE->BSRR = (1U << gpio_no); 
 }
 
 /*----------------------------------------------------------------------------
    turns a GPIOE off
  *----------------------------------------------------------------------------*/
-void outputSignalOFF(unsigned int gpio_no) {
-		GPIOE->BSRR = (1U << gpio_no) << 16; 
+void GPIOE_SignalOFF(unsigned int gpio_no) {
+	GPIOE->BSRR = (1U << gpio_no) << 16; 
 }
+
+/*----------------------------------------------------------------------------
+   turns a GPIOB on
+ *----------------------------------------------------------------------------*/
+void GPIOB_SignalON(unsigned int gpio_no) {
+	GPIOB->BSRR = (1U << gpio_no); 
+}
+
+/*----------------------------------------------------------------------------
+   turns a GPIOB off
+ *----------------------------------------------------------------------------*/
+void GPIOB_SignalOFF(unsigned int gpio_no) {
+		GPIOB->BSRR = (1U << gpio_no) << 16; 
+}
+
 
 void selectMode(unsigned int mode) {
 
 	if (mode == 0xF) { //default mode, enable = 0, all control signals 0
-		outputSignalOFF(3);
-		outputSignalOFF(4);
-		outputSignalOFF(5);
-		outputSignalOFF(6);
-		outputSignalOFF(7);
+		GPIOE_SignalOFF(3);
+		GPIOE_SignalOFF(4);
+		GPIOE_SignalOFF(5);
+		GPIOE_SignalOFF(6);
+		GPIOE_SignalOFF(7);
+		GPIOB_SignalOFF(15);
 	} else {
 		//outputSignalON(0xF ); //turn on the enable signal
 		
 		//turn on the desired control signals
 		GPIOE->ODR |= mode << 3;
+	  GPIOB_SignalON(15);
 	}
 }
 
@@ -179,7 +196,7 @@ void init_GPIOE(){
 
 //turn on the buzzer for a specified number of milli-seconds 
 void buzzerOn() { 
-	GPIOE->BSRR |= 1U << 3;
+	GPIOB->BSRR |= 1U << 4;
 	
 	TIM7->DIER &= ~TIM_DIER_UIE;
 	TIM7->EGR |= TIM_EGR_UG;
@@ -190,7 +207,7 @@ void buzzerOn() {
 
 void buzzerOFF() {
 	
-	GPIOE->BSRR |= (1U <<3) << 16;					/*Enable interrupts */
+	GPIOB->BSRR |= (1U <<4) << 16;					/*Enable interrupts */
 	TIM7->CR1 &= ~TIM_CR1_CEN;  //stop timer
 }
 

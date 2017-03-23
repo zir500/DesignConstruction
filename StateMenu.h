@@ -31,7 +31,7 @@ const state stateLookUp[10][10] = {
 			"Voltage",
 			"mV",
 			"100 mV",
-      0.2,
+      0.2*1000, //1000 facter to convert to milivolts
       0x2,
       0x2
     },
@@ -39,7 +39,7 @@ const state stateLookUp[10][10] = {
 			"Voltage",
 			"mV",
 			"10 mV",
-      0.02,
+      0.02*1000,
       0x2,
       0x3
     },
@@ -47,7 +47,7 @@ const state stateLookUp[10][10] = {
 			"Voltage",
 			"mV",
 			"1 mV",
-      0.002,
+      0.002*1000,
       0x2,
       0x4
     },
@@ -55,7 +55,7 @@ const state stateLookUp[10][10] = {
 	
   { //Current
 		{//RANGE_10A - never used.
-			"10A Current",
+			"Error! Out of Current range",
 			"",
 			"",
       0,
@@ -72,17 +72,17 @@ const state stateLookUp[10][10] = {
     },
 		{//RANGE_100mA
 			"Current",
-			"A",
+			"mA",
 			"100 mA",
-      0.1,
+      0.1*1000,
       0x1,
       0x1
     },
 		{//RANGE_1mA
 			"Current",
-			"A",
+			"mA",
 			"10 mA",
-      0.01,
+      0.01*1000,
       0x1,
       0x2
     },

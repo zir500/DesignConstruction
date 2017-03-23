@@ -580,15 +580,14 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 const float ADC_VREF = 3.0;
 
 //Scales the adc reading to produce a meaningful measurement value.
-float retSignedValue(int readValue, float rangeValue) { 
+float retSignedValue(int readValue, float scalingFactor) { 
 	float retValue;
 	float maxUsableDivisions = (4096.0f/ADC_VREF) * maximInputVoltage;
 	
 	if ( MULTIMETER_MODE == MODE_VOLTAGE ) {
-			retValue = (readValue * (ADC_VREF/4096.0f) * rangeValue/maximInputVoltage) - (rangeValue/2.0f);
-		//	retValue = (readValue * (ADC_VREF/4096.0f));//NOTE we thing the vfref for the ad is actually 3 v not 3.3 so we have changes this.
+			retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maximInputVoltage) - (scalingFactor/2.0f);
 	} else {
-		retValue = (readValue * (ADC_VREF/4096.0f) * rangeValue/maximInputVoltage);
+		retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maximInputVoltage);
 	}
 	
 	return retValue;
