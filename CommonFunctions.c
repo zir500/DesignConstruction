@@ -215,8 +215,8 @@ void buzzerOFF() {
 void init_TIM7() {
 	
  	RCC->APB1ENR |= RCC_APB1ENR_TIM7EN; 	/*Enable clock*/
- 	TIM7->PSC = 42000; 											
-	TIM7->ARR = 1000;  //set to 3 seconds
+ 	TIM7->PSC = (SystemCoreClock/2)/10000; 											
+	TIM7->ARR = 30000;  //set to 3 seconds
 	TIM7->DIER |= TIM_DIER_UIE; 					/*Enable interrupts */
 	NVIC_EnableIRQ(TIM7_IRQn); 				/*Register interrupt*/
 
