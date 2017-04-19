@@ -85,8 +85,6 @@ int main(){
 		printf("count() called, value = %d \n", counter);
 	}*/
 	
-	
-	buzzerOn();
 	//Run Multimeter
 	menu();
 	

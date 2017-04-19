@@ -14,7 +14,7 @@
   void outputSignalOFF(unsigned int gpio_no);
 	void waitForRelease(void);
 	void selectMode(unsigned int mode);
-	void buzzerOn(void);
+	void buzzerOn(int miliseconds);
 	void buzzerOFF(void);
 
 #endif //__COMMON_FUNCTIONS_H

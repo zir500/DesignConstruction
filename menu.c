@@ -340,7 +340,7 @@ int printAndWait(char firstLineString[], char* secondLineString, int buttons[], 
 void menu(){
 	MenuIds selectedMenuID = MENU_ID_OPEN;
 	RangeMenuSettings selectedSettings;
-	selectedSettings.selectedRange = RANGE_ID_RANGE_10;
+	selectedSettings.selectedRange = RANGE_ID_RANGE_1;
 
 	int autoRange = 0; 
 	while(1){
@@ -353,6 +353,7 @@ void menu(){
 			
 			case MENU_ID_MEASUREMENT:
 				LED_Out(96);
+			
 				selectedMenuID = measurementMenu(autoRange, selectedSettings.selectedRange);
 				break; 
 			
@@ -403,7 +404,10 @@ void menu(){
 				//auto ranging stuff 
 				LED_Out(0);
 				selectedMenuID = MENU_ID_MEASUREMENT;
-				autoRange = 1; 
+				autoRange = 1;
+
+				//to avoid in gettting the error state (idx = o of StateMenu struct)
+				selectedSettings.selectedRange = RANGE_ID_RANGE_1;
 				break;
 			
 			case MENU_ID_RESISTANCE:
@@ -477,19 +481,31 @@ RangeIds autoRanging(RangeIds currentRange) {
 		// if it is outside this, change to a more precise range
 		if ( (value < 2048 + 410) && (value > 2048 - 410) && currentRange != lowerLimit) {
 			currentRange++;
-		} else if ( ( (value > 4096 - 10) || (value < 10) ) &&  (currentRange != upperLimit) ) { //let some error interval
-			currentRange--;
+			buzzerOn(200); //short beep
+		} else if ( (value > 4096 - 10) || (value < 10) ) {
+			if (currentRange != upperLimit) {
+				currentRange--;
+				buzzerOn(200); //short beep
+			} else {
+				//TODO write in the report that this will be a continous beep, as the autorange is called continously
+				buzzerOn(1000); //long beep 
+			}
 		}
-		
 	} else {
 	
-			if (value >= SAMPLES_DEPTH && currentRange != upperLimit) {
-				currentRange--;
+			if (value >= SAMPLES_DEPTH) {
+				if ( currentRange != upperLimit ) {
+					currentRange--;
+					buzzerOn(200); //short beep
+				} else {
+					//TODO write in the report that this will be a continous beep, as the autorange is called continously
+					buzzerOn(1000); //long beep
+				}
 			} else if (value <= 410 && currentRange != lowerLimit) { //410 represents the next range available
 				currentRange++;
+				buzzerOn(200); //short beep
 			}
 	}
-	
 	return currentRange;
 }
 
@@ -510,11 +526,10 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 	unsigned int value; // Raw value measured from ADC (0-4096)
 	float actualValue; // Actual value being represented by the input (eg 100 mA)
 	
-	while( buttonPressed !=  7){
+	while( buttonPressed != 7 ){
 
 		//TODO take the variable init out of the loop
 
-		
 		char* units; // The Units of the current value to be displayed.
 		char* rangeString;// The range (and units) of this measurement.
 		char modeString = 'M';// Indicated which mode the multimeter is in (Auto-range or manual).
@@ -582,7 +597,7 @@ const float ADC_VREF = 3.0;
 //Scales the adc reading to produce a meaningful measurement value.
 float retSignedValue(int readValue, float scalingFactor) { 
 	float retValue;
-	float maxUsableDivisions = (4096.0f/ADC_VREF) * maximInputVoltage;
+	//float maxUsableDivisions = (4096.0f/ADC_VREF) * maximInputVoltage;
 	
 	if ( MULTIMETER_MODE == MODE_VOLTAGE ) {
 			retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maximInputVoltage) - (scalingFactor/2.0f);

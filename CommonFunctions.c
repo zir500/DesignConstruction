@@ -195,8 +195,15 @@ void init_GPIOE(){
 }
 
 //turn on the buzzer for a specified number of milli-seconds 
-void buzzerOn() { 
+//max value for the timer is 6500 ms (=6.5s)
+void buzzerOn(int miliseconds) { 
 	GPIOB->BSRR |= 1U << 4;
+	
+	//convert miliseconds 
+	//TIM7->ARR is 16 bit register, so we have to avoid overflowing
+	if (miliseconds < 6500) {
+		TIM7->ARR = miliseconds * 10;
+	}
 	
 	TIM7->DIER &= ~TIM_DIER_UIE;
 	TIM7->EGR |= TIM_EGR_UG;
