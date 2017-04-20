@@ -227,9 +227,9 @@ RangeMenuSettings openManualResistance() {
 
 MenuIds openMenu(){
 
-	int buttonArray[4] = {0,1,2,7};
-	int size = 4;
-	int buttonPressed = printAndWait("Select Function", " 1.Voltage   2.Current   3.Resistance ", buttonArray, size);
+	int buttonArray[5] = {0,1,2,3,7};
+	int size = 5;
+	int buttonPressed = printAndWait("Select Function", " 1.Voltage   2.Current   3.Resistance  4.Computer Link  ", buttonArray, size);
 	
 	MenuIds selectedMenu = MENU_ID_VOLTAGE; 
 	switch (buttonPressed){
@@ -243,6 +243,9 @@ MenuIds openMenu(){
 				
 		case 2:
 			selectedMenu =  MENU_ID_RESISTANCE;
+			break;
+		case 3:
+			selectedMenu = MENU_ID_COMPUTER_LINK;
 			break;
 		
 		case 7:
@@ -443,6 +446,11 @@ void menu(){
 				selectedMenuID = openMaxMenu();
 				break;
 			
+			case MENU_ID_COMPUTER_LINK:
+				LED_Out(0);
+				computerLinkMenu();
+				break;
+			
 			default:
 				selectedMenuID = MENU_ID_MEASUREMENT;
 				autoRange = 1; 
@@ -450,6 +458,11 @@ void menu(){
 		}	
 	}	
 }
+
+void computerLinkMenu(){
+	
+}
+	
 
 RangeIds autoRanging(RangeIds currentRange) {
 	

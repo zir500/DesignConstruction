@@ -26,12 +26,18 @@ void initLCD(){
 void listen_port_test(){
 	char* receivedString;
 	lcd_write_string("Listenning", 1, 0);
-
+	
 	while(1) {
 		if(USART2->SR & USART_SR_RXNE){
 			char lengthOfMsg = (char)USART2->DR;
 			//First byte should be the length of the string.
 			receivedString = (char*)malloc(sizeof(char)*lengthOfMsg);
+			
+						//DEBUG:
+			char lengthTestString[16];
+			sprintf(lengthTestString, "Length: %d", lengthOfMsg);
+			lcd_clear_display();
+			lcd_write_string(lengthTestString, 1, 0);
 			
 			if(receivedString != NULL){
 				//Now that we have received the length of the message proceed to read the rest of the message
@@ -58,7 +64,6 @@ void listen_port_test(){
 }
 
 
-
 int main(){
 	SystemCoreClockUpdate();                      /* Get Core Clock Frequency   */
   if (SysTick_Config(SystemCoreClock / 1000)) { /* SysTick 1 msec interrupts  */
@@ -75,8 +80,17 @@ int main(){
 	init_GPIOE();
 	serial_init(); //either initButtons or serial_init should be commented as they are using the same port
 
-		//printf("START");
+//printf("START");
 	//listen_port_test();
+	
+	/*
+	char receivedPacket[256];
+	int length = 0;
+	
+	receive(receivedPacket, 256, &length);
+	
+	lcd_clear_display();
+	lcd_write_string(receivedPacket, 1, 0); */
 	
 	/*uint32_t counter = 0;
 	while(1) {
@@ -86,7 +100,7 @@ int main(){
 	}*/
 	
 	//Run Multimeter
-	menu();
+	//menu();
 	
 	return 0;
 }

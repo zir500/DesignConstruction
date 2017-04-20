@@ -24,6 +24,8 @@ typedef enum {
 	
 	MENU_ID_MAX,
 	MENU_ID_MIN,
+	
+	MENU_ID_COMPUTER_LINK,
 }MenuIds;
 
 //TODO rename 
@@ -46,6 +48,8 @@ void menu(void);
 int printAndWait(char firstLineString[], char secondLineString[], int buttons[], int size);
 MenuIds measurementMenu(int isAutoRangeOn, RangeIds range);
 float retSignedValue(int readValue, float rangeValue);
+void computerLinkMenu(void);
+
 
 
 #endif //__MENU_H

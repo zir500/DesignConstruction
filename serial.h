@@ -4,5 +4,7 @@
 void send_packet(char* packet, char length);
 void serial_init(void);
 void listen_port(void);
+void receive(char* receivedPacket, int bufferLength, int* packetLength);
+
 
 #endif /*_SERIAL_H_*/
