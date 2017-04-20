@@ -8,6 +8,7 @@
 #include "serial.h"
 #include<stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 
 #define BUFFER_SIZE 128 //TODO what is this????

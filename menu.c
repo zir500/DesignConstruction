@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include "ADC.h"
 #include "StateMenu.h"
+#include "serial.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -461,6 +462,10 @@ void menu(){
 
 void computerLinkMenu(){
 	
+		
+	
+
+
 }
 	
 
