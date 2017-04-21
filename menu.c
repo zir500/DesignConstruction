@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 
+extern char RECIEVE_BUFFER[RECIEVE_BUFFER_SIZE];
 
 
 int MULTIMETER_MODE = MODE_VOLTAGE;
@@ -230,7 +231,7 @@ MenuIds openMenu(){
 
 	int buttonArray[5] = {0,1,2,3,7};
 	int size = 5;
-	int buttonPressed = printAndWait("Select Function", " 1.Voltage   2.Current   3.Resistance  4.Computer Link  ", buttonArray, size);
+	int buttonPressed = printAndWait("Select Function", " 1.Volt 2.Current 3.Resist 4.PC Mode ", buttonArray, size);
 	
 	MenuIds selectedMenu = MENU_ID_VOLTAGE; 
 	switch (buttonPressed){
@@ -362,7 +363,7 @@ void menu(){
 				break; 
 			
 			case MENU_ID_OPEN:
-				LED_Out(7);
+				LED_Out(15);
 				selectedMenuID = openMenu();
 				break;
 			
@@ -448,7 +449,7 @@ void menu(){
 				break;
 			
 			case MENU_ID_COMPUTER_LINK:
-				LED_Out(0);
+				LED_Out(128);
 				computerLinkMenu();
 				break;
 			
@@ -461,11 +462,22 @@ void menu(){
 }
 
 void computerLinkMenu(){
-	
+	while(1){
+		if (strcmp(RECIEVE_BUFFER, "voltage mode") == 0) {
+			//go to voltage mode
+			lcd_clear_display();
+			Delay(100); //NEED THIS, otherwise nothing is displayed
+			lcd_write_string("Voltage Mode",0,0);
+				memset(RECIEVE_BUFFER, 0, RECIEVE_BUFFER_SIZE);
+		} else if (strcmp(RECIEVE_BUFFER, "resistance mode") == 0) {
+			//go to resistance mode 
+			lcd_clear_display();
+			Delay(100); //NEED THIS, otherwise nothing is displayed
+			lcd_write_string("Resistance Mode",0,0);
+			memset(RECIEVE_BUFFER, 0, RECIEVE_BUFFER_SIZE);
+		}
 		
-	
-
-
+	}
 }
 	
 

@@ -81,27 +81,12 @@ int main(){
 	init_GPIOE();
 	serial_init(); //either initButtons or serial_init should be commented as they are using the same port
 
-//printf("START");
+	//printf("START");
 	//listen_port_test();
 	
-	/*
-	char receivedPacket[256];
-	int length = 0;
-	
-	receive(receivedPacket, 256, &length);
-	
-	lcd_clear_display();
-	lcd_write_string(receivedPacket, 1, 0); */
-	
-	/*uint32_t counter = 0;
-	while(1) {
-		Delay(2000);	
-		counter++;
-		printf("count() called, value = %d \n", counter);
-	}*/
-	
 	//Run Multimeter
-	//menu();
+	menu();
+	
 	
 	return 0;
 }

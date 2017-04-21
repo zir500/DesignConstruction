@@ -7,8 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct packetNode *packetListHead = 0;
-struct packetNode *packetListCurrent = 0;
+char RECIEVE_BUFFER[RECIEVE_BUFFER_SIZE];
 
 void send_packet(char* packet, char length){
 	printf("%s\n", packet);
@@ -51,25 +50,8 @@ void serial_init(void) {
 
 
 void USART2_IRQHandler(void) {
-	
-	char receivedPacket[MAX_PACKET_SIZE] = '\0';
-	int length = 0;
-	
-	receive(receivedPacket, MAX_PACKET_SIZE, &length);  
 
-	struct packetNode *thisNode = (struct packetNode*)malloc(sizeof(struct packetNode));
-	strncpy(thisNode->packetContents, receivedPacket, MAX_PACKET_SIZE);
-	thisNode->packetLength = length;
-	thisNode->next = 0;
-	
-	if(packetListHead == 0){
-		packetListHead = thisNode;
-	} else {
-		packetListHead->next = thisNode;
-	}
-	
-//	lcd_clear_display();
-//	lcd_write_string(receivedPacket, 1, 0);
+	receive();
 
 }
 
@@ -79,7 +61,7 @@ Parameters:
 	bufferLength - The size of the receivedPacket buffer
 	packetLengt - POinter to an int which will be filled with the total size of the packet (including the \0 character)
 */
-void receive(char receivedPacket[], int bufferLength, int* packetLength){
+void receiveOLD(char receivedPacket[], int bufferLength, int* packetLength){
 	char* receivedString;
 
 		//Disable the interrupt so we can receive the entire packet
@@ -118,4 +100,34 @@ void receive(char receivedPacket[], int bufferLength, int* packetLength){
 		}
 }
 
+
+void receive(){
+	char receiveBuffer[RECIEVE_BUFFER_SIZE];
+	
+	//Disable the interrupt so we can receive the entire packet
+	USART2-> CR1 &= ~USART_CR1_RXNEIE; 
+	
+	//If the byte we received is \n then this is the beginning of a packet
+	if (USART2->DR == '\n'){
+		char currentByte = 0;
+		int numberOfReceievedBytes = 0;
+		
+		while(currentByte != '\n'){
+			if(USART2->SR & USART_SR_RXNE){
+				currentByte = USART2->DR;
+				receiveBuffer[numberOfReceievedBytes] = currentByte;
+				numberOfReceievedBytes++;
+			}
+		}
+		
+		//Replace the final \n with a \0 for convinience
+		receiveBuffer[numberOfReceievedBytes-1] = '\0';
+		strcpy(RECIEVE_BUFFER, receiveBuffer);
+
+		//lcd_clear_display();
+		//lcd_write_string(receiveBuffer, 0, 0);
+	}
+	
+	USART2-> CR1 |= USART_CR1_RXNEIE; 
+}
 
