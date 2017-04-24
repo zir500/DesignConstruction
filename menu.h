@@ -21,6 +21,7 @@ typedef enum {
 	MENU_ID_RESISTANCE,
 	MENU_ID_RESISTANCE_MANUAL_RANGE,
 	MENU_ID_RESISTANCE_AUTO_RANGE,
+	MENU_ID_RESISTANCE_CONTINUITY,
 	
 	MENU_ID_MAX,
 	MENU_ID_MIN,
@@ -48,7 +49,7 @@ void menu(void);
 int printAndWait(char firstLineString[], char secondLineString[], int buttons[], int size);
 MenuIds measurementMenu(int isAutoRangeOn, RangeIds range);
 float retSignedValue(int readValue, float rangeValue);
-void computerLinkMenu(void);
+MenuIds computerLinkMenu(void);
 
 
 

@@ -5,7 +5,7 @@
 #define RECIEVE_BUFFER_SIZE 100
 
 
-void send_packet(char* packet, char length);
+void send_packet(char* packet);
 void serial_init(void);
 void listen_port(void);
 void receiveOLD(char* receivedPacket, int bufferLength, int* packetLength);

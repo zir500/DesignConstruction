@@ -66,7 +66,7 @@ const state stateLookUp[10][10] = {
 			"Current",
 			"A",
 			"1 A",
-      1,
+      2,
       0x1,
       0x0
     },
@@ -74,7 +74,7 @@ const state stateLookUp[10][10] = {
 			"Current",
 			"mA",
 			"100 mA",
-      0.1*1000,
+      0.2*1000,
       0x1,
       0x1
     },
@@ -82,7 +82,7 @@ const state stateLookUp[10][10] = {
 			"Current",
 			"mA",
 			"10 mA",
-      0.01*1000,
+      0.02*1000,
       0x1,
       0x2
     },

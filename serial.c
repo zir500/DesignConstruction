@@ -9,9 +9,8 @@
 
 char RECIEVE_BUFFER[RECIEVE_BUFFER_SIZE];
 
-void send_packet(char* packet, char length){
-	printf("%s\n", packet);
-
+void send_packet(char* packet){
+	printf("\n%s\n", packet);
 }
 
 static void _configUSART2(uint32_t BAUD){
@@ -87,8 +86,8 @@ void receiveOLD(char receivedPacket[], int bufferLength, int* packetLength){
 			receivedString[numChars] = '\0'; 
 
 			//Send the acknowledgement for this packet
-			send_packet("ack", 3);
-			
+			send_packet("ack");
+			               
 			// Copy the packet data into the output buffer & set the length output.
 			strncpy(receivedPacket, receivedString, bufferLength);
 			*packetLength = numChars;

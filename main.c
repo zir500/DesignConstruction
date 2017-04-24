@@ -54,7 +54,7 @@ void listen_port_test(){
 				//Entire message received, append a string temination for convinience.
 				receivedString[numChars] = '\0'; 
 
-				send_packet("ack", 3);
+				send_packet("ack");
 				//DEBUG
 				lcd_clear_display();
 				lcd_write_string(receivedString, 1, 0);

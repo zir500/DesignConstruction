@@ -166,9 +166,9 @@ MenuIds openResistanceMenu(){
 	
 	MULTIMETER_MODE = MODE_RESISTANCE;
 	
-	int buttonArray[3] = {0,1,7};
-	int size = 3;
-	int buttonPressed = printAndWait("Select options", " 1.Manual Range    2.Auotmatic Range ", buttonArray, size);
+	int buttonArray[4] = {0,1,2,7};
+	int size = 4;
+	int buttonPressed = printAndWait("Select options", " 1.Manual Range    2.Auotmatic Range 3.Continuity Test", buttonArray, size);
 	MenuIds selectedMenu = MENU_ID_MEASUREMENT; 
 	
 	switch(buttonPressed) {
@@ -178,6 +178,10 @@ MenuIds openResistanceMenu(){
 		
 		case 1:
 			selectedMenu = MENU_ID_RESISTANCE_AUTO_RANGE;
+			break;
+		
+		case 2: 
+			selectedMenu = MENU_ID_RESISTANCE_CONTINUITY;
 			break;
 		
 		case 7:
@@ -197,6 +201,7 @@ RangeMenuSettings openManualResistance() {
 	selectMode(0xF);
 	
 	int buttonPressed = printAndWait("Resistance Manual", "1.1MOhm 2.100kOhm 3.10kOhm 4.1kOhm ", buttonArray, size);
+
 	RangeMenuSettings selectedSettings;
 	selectedSettings.nextMenu = MENU_ID_MEASUREMENT;
 	selectedSettings.selectedRange = RANGE_ID_RANGE_10;
@@ -231,7 +236,7 @@ MenuIds openMenu(){
 
 	int buttonArray[5] = {0,1,2,3,7};
 	int size = 5;
-	int buttonPressed = printAndWait("Select Function", " 1.Volt 2.Current 3.Resist 4.PC Mode ", buttonArray, size);
+	int buttonPressed = printAndWait("Select Function", " 1.Voltage  2.Current  3.Resistance  4.Computer Mode   ", buttonArray, size);
 	
 	MenuIds selectedMenu = MENU_ID_VOLTAGE; 
 	switch (buttonPressed){
@@ -332,9 +337,14 @@ int printAndWait(char firstLineString[], char* secondLineString, int buttons[], 
 		//If message wont fit on the screen then scroll it
 		if(messageLength > 16){
 			scrollText(message, messageLength);
+			char truncatedMsg[17];
+			strncpy(truncatedMsg, message, 16);
+			truncatedMsg[16] = '\0';
+			lcd_write_string(truncatedMsg, 1, 0);
+			
+		} else {
+			lcd_write_string(message, 1, 0);
 		}
-
-		lcd_write_string(message, 1, 0);
 		buttonPressed = DelayForButton(SCROLL_RATE, buttons, size);	
 	}
 
@@ -352,6 +362,7 @@ void menu(){
 		
 		waitForRelease();
 		lcd_clear_display();
+		//back button always on
 		LED_On(7);
 
 		switch (selectedMenuID) {
@@ -438,6 +449,11 @@ void menu(){
 				autoRange = 1; 
 				break;
 			
+			case MENU_ID_RESISTANCE_CONTINUITY:
+				selectedMenuID = MENU_ID_MEASUREMENT;
+				autoRange = 1; 		
+				break;
+			
 			case MENU_ID_MIN:
 				LED_Out(0);
 				selectedMenuID = openMinMenu();
@@ -461,7 +477,8 @@ void menu(){
 	}	
 }
 
-void computerLinkMenu(){
+// Work in progress 
+MenuIds computerLinkMenu(){
 	while(1){
 		if (strcmp(RECIEVE_BUFFER, "voltage mode") == 0) {
 			//go to voltage mode
@@ -469,14 +486,16 @@ void computerLinkMenu(){
 			Delay(100); //NEED THIS, otherwise nothing is displayed
 			lcd_write_string("Voltage Mode",0,0);
 				memset(RECIEVE_BUFFER, 0, RECIEVE_BUFFER_SIZE);
+			MULTIMETER_MODE = MODE_VOLTAGE;
+			
 		} else if (strcmp(RECIEVE_BUFFER, "resistance mode") == 0) {
 			//go to resistance mode 
 			lcd_clear_display();
 			Delay(100); //NEED THIS, otherwise nothing is displayed
 			lcd_write_string("Resistance Mode",0,0);
 			memset(RECIEVE_BUFFER, 0, RECIEVE_BUFFER_SIZE);
-		}
-		
+		}	
+			printf("\n%04d\n", read_ADC1());
 	}
 }
 	
@@ -505,7 +524,7 @@ RangeIds autoRanging(RangeIds currentRange) {
 
 	int value = read_ADC1();
 	
-	if (MULTIMETER_MODE == MODE_VOLTAGE) {
+	if ( (MULTIMETER_MODE == MODE_VOLTAGE) || (MULTIMETER_MODE == MODE_CURRENT) ) {
 		
 		// (2048 + 410, 2048 - 410) represents the acceptable band
 		// if it is outside this, change to a more precise range
@@ -599,6 +618,10 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 				minimumValue = actualValue;
 			}
 			
+			if ( ( (value > 4096 - 10) || (value < 10) ) && (MULTIMETER_MODE != MODE_RESISTANCE) ) {
+				buzzerOn(500);
+			}				
+			
 			display_Measure(measurement, modeString, rangeString, units, actualValue);	
 			
 			//Set which menu to return to if the menu button is pressed.
@@ -629,11 +652,10 @@ float retSignedValue(int readValue, float scalingFactor) {
 	float retValue;
 	//float maxUsableDivisions = (4096.0f/ADC_VREF) * maximInputVoltage;
 	
-	if ( MULTIMETER_MODE == MODE_VOLTAGE ) {
-			retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maximInputVoltage) - (scalingFactor/2.0f);
+	if ( (MULTIMETER_MODE == MODE_VOLTAGE) || (MULTIMETER_MODE == MODE_CURRENT) ) {
+		retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maximInputVoltage) - (scalingFactor/2.0f);
 	} else {
 		retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maximInputVoltage);
-	}
-	
+	} 	
 	return retValue;
 }
