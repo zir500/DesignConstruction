@@ -47,7 +47,7 @@ typedef struct{
 
 void menu(void);
 int printAndWait(char firstLineString[], char secondLineString[], int buttons[], int size);
-MenuIds measurementMenu(int isAutoRangeOn, RangeIds range);
+MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity);
 float retSignedValue(int readValue, float rangeValue);
 MenuIds computerLinkMenu(void);
 

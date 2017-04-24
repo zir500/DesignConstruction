@@ -168,7 +168,7 @@ MenuIds openResistanceMenu(){
 	
 	int buttonArray[4] = {0,1,2,7};
 	int size = 4;
-	int buttonPressed = printAndWait("Select options", " 1.Manual Range    2.Auotmatic Range 3.Continuity Test", buttonArray, size);
+	int buttonPressed = printAndWait("Select options", " 1.Manual Range  2.Auotmatic Range  3.Continuity Test  ", buttonArray, size);
 	MenuIds selectedMenu = MENU_ID_MEASUREMENT; 
 	
 	switch(buttonPressed) {
@@ -358,6 +358,7 @@ void menu(){
 	selectedSettings.selectedRange = RANGE_ID_RANGE_1;
 
 	int autoRange = 0; 
+	int isContinuity = 0;
 	while(1){
 		
 		waitForRelease();
@@ -370,7 +371,9 @@ void menu(){
 			case MENU_ID_MEASUREMENT:
 				LED_Out(96);
 			
-				selectedMenuID = measurementMenu(autoRange, selectedSettings.selectedRange);
+				selectedMenuID = measurementMenu(autoRange, selectedSettings.selectedRange, isContinuity);
+				//reset
+				isContinuity = 0;
 				break; 
 			
 			case MENU_ID_OPEN:
@@ -452,6 +455,7 @@ void menu(){
 			case MENU_ID_RESISTANCE_CONTINUITY:
 				selectedMenuID = MENU_ID_MEASUREMENT;
 				autoRange = 1; 		
+			  isContinuity = 1;
 				break;
 			
 			case MENU_ID_MIN:
@@ -499,8 +503,8 @@ MenuIds computerLinkMenu(){
 	}
 }
 	
-
-RangeIds autoRanging(RangeIds currentRange) {
+//isContinuity acts like a Bool type 
+RangeIds autoRanging(RangeIds currentRange, int isContinuity) {
 	
 	RangeIds upperLimit;
 	RangeIds lowerLimit;
@@ -518,7 +522,12 @@ RangeIds autoRanging(RangeIds currentRange) {
 			break;
 		case MODE_RESISTANCE:
 			upperLimit = RANGE_ID_RANGE_10;
-			lowerLimit = RANGE_ID_RANGE_10m;
+
+			if ( isContinuity == 0 ) {
+				lowerLimit = RANGE_ID_RANGE_10m;
+			} else {
+				lowerLimit = RANGE_ID_RANGE_1mV;
+			}
 			break; 
 	}
 
@@ -559,7 +568,7 @@ RangeIds autoRanging(RangeIds currentRange) {
 }
 
 
-MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
+MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity) {
 	
 	int buttonArray[3] = {5,6,7};	// What button to listen for.
 	int size = 3;					//Number of buttons to listen for.
@@ -595,7 +604,7 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 		} else {
 		
 			if (isAutoRangeOn == 1) {
-				range = autoRanging(range);
+				range = autoRanging(range, isContinuity);
 				modeString = 'A';
 			}
 			
@@ -618,9 +627,17 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 				minimumValue = actualValue;
 			}
 			
+			//turn buzzer on for manual ranges
 			if ( ( (value > 4096 - 10) || (value < 10) ) && (MULTIMETER_MODE != MODE_RESISTANCE) ) {
 				buzzerOn(500);
 			}				
+			
+			//turn buzzer on for continuit test
+			if ( isContinuity == 1 ) {
+				if ( ( actualValue < 50 ) && (rangeMode == RANGE_ID_RANGE_1mV) ) {
+					buzzerOn(500);
+				}
+			}
 			
 			display_Measure(measurement, modeString, rangeString, units, actualValue);	
 			

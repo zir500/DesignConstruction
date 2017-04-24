@@ -119,7 +119,15 @@ const state stateLookUp[10][10] = {
 			"1 kohm",
 			1,
 			0x0,
-		0x3
+			0x3
+		}, 
+		{//RANGE continuity
+			"Continuity",
+			"ohms",
+			"",
+			450,
+			0x0,
+			0x4
 		}
 	}
 };
