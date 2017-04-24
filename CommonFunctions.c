@@ -66,7 +66,7 @@ void init_GIPOB(){
                        (1UL <<  2* 5) | 
                        (1UL <<  2* 7) |
 											 (1UL <<  2* 8) |
-											 (1UL <<  2*15) ); 
+											 (1UL <<  2*15) ); //TODO WHY do we init it ??? 
   GPIOB->OTYPER   &= ~((1UL <<    4) |
                        (1UL <<    5) |
                        (1UL <<    7) |
@@ -95,52 +95,40 @@ void init_GIPOB(){
 }
 
 /*----------------------------------------------------------------------------
-   turns a GPIOE on
+   init GIPOC 
+NOTE: pin for ADC1 is init in a separate function
  *----------------------------------------------------------------------------*/
-void GPIOE_SignalON(unsigned int gpio_no) {
-	GPIOE->BSRR = (1U << gpio_no); 
+void init_GIPOC(){
+	
+  RCC->AHB1ENR  |= RCC_AHB1ENR_GPIOCEN;         /* Enable GPIOB clock                */
+
+  GPIOC->MODER    &= ~((3UL <<  2* 5 ) |		
+                       (3UL <<  2* 6 ) |
+                       (3UL <<  2* 13) );   /* PB. 5,6,13 is output               */
+  GPIOC->MODER    |=  ((1UL <<  2* 5 ) | 
+                       (1UL <<  2* 6 ) |
+											 (1UL <<  2* 13) ); 
+  GPIOC->OTYPER   &= ~((1UL <<    5 ) |
+                       (1UL <<    6 ) |
+                       (1UL <<    13) );   /* PB 5,6,13 is output Push-Pull     */
+  GPIOC->OSPEEDR  &= ~((3UL << 2* 5 ) |
+                       (3UL << 2* 6 ) |
+                       (3UL << 2* 13) );   /* PB. 5,6, 13 is 50MHz Fast Speed     */
+  GPIOC->OSPEEDR  |=  ((2UL << 2* 5 ) |
+                       (2UL << 2* 6 ) | 
+                       (2UL << 2* 13) ); 
+  GPIOC->PUPDR    &= ~((3UL << 2* 5 ) |
+                       (3UL << 2* 6 ) |
+                       (3UL << 2* 13) );   /* PB.5,6,13 is Pull up              */
+  GPIOC->PUPDR    |=  ((1UL << 2* 5 ) |
+                       (1UL << 2* 6 ) | 
+                       (1UL << 2* 13) ); 
 }
 
 /*----------------------------------------------------------------------------
-   turns a GPIOE off
+   init GIPOC 
+NOTE: pins for buttons are on their own init
  *----------------------------------------------------------------------------*/
-void GPIOE_SignalOFF(unsigned int gpio_no) {
-	GPIOE->BSRR = (1U << gpio_no) << 16; 
-}
-
-/*----------------------------------------------------------------------------
-   turns a GPIOB on
- *----------------------------------------------------------------------------*/
-void GPIOB_SignalON(unsigned int gpio_no) {
-	GPIOB->BSRR = (1U << gpio_no); 
-}
-
-/*----------------------------------------------------------------------------
-   turns a GPIOB off
- *----------------------------------------------------------------------------*/
-void GPIOB_SignalOFF(unsigned int gpio_no) {
-		GPIOB->BSRR = (1U << gpio_no) << 16; 
-}
-
-
-void selectMode(unsigned int mode) {
-
-	if (mode == 0xF) { //default mode, enable = 0, all control signals 0
-		GPIOE_SignalOFF(3);
-		GPIOE_SignalOFF(4);
-		GPIOE_SignalOFF(5);
-		GPIOE_SignalOFF(6);
-		GPIOE_SignalOFF(7);
-		GPIOB_SignalOFF(15);
-	} else {
-		//outputSignalON(0xF ); //turn on the enable signal
-		
-		//turn on the desired control signals
-		GPIOE->ODR |= mode << 3;
-	  GPIOB_SignalON(15);
-	}
-}
-
 void init_GPIOE(){
 	RCC->AHB1ENR  |= RCC_AHB1ENR_GPIOEEN;     /* Enable GPIOE clock        */
 
@@ -188,10 +176,96 @@ void init_GPIOE(){
 												(1UL <<  2* 7) );   /* PE 3 is output Push-Pull  */
 }
 
+
+
+/*----------------------------------------------------------------------------
+   turns a GPIOB on
+ *----------------------------------------------------------------------------*/
+void GPIOB_SignalON(unsigned int gpio_no) {
+	GPIOB->BSRR = (1U << gpio_no); 
+}
+
+/*----------------------------------------------------------------------------
+   turns a GPIOB off
+ *----------------------------------------------------------------------------*/
+void GPIOB_SignalOFF(unsigned int gpio_no) {
+		GPIOB->BSRR = (1U << gpio_no) << 16; 
+}
+
+/*----------------------------------------------------------------------------
+   turns a GPIOC on
+ *----------------------------------------------------------------------------*/
+void GPIOC_SignalON(unsigned int gpio_no) {
+	GPIOC->BSRR = (1U << gpio_no); 
+}
+
+/*----------------------------------------------------------------------------
+   turns a GPIOC off
+ *----------------------------------------------------------------------------*/
+void GPIOC_SignalOFF(unsigned int gpio_no) {
+	GPIOC->BSRR = (1U << gpio_no) << 16; 
+}
+
+
+/*----------------------------------------------------------------------------
+   turns a GPIOE on
+ *----------------------------------------------------------------------------*/
+void GPIOE_SignalON(unsigned int gpio_no) {
+	GPIOE->BSRR = (1U << gpio_no); 
+}
+
+/*----------------------------------------------------------------------------
+   turns a GPIOE off
+ *----------------------------------------------------------------------------*/
+void GPIOE_SignalOFF(unsigned int gpio_no) {
+	GPIOE->BSRR = (1U << gpio_no) << 16; 
+}
+
+
+void selectMode(unsigned int mode, unsigned int range) {
+
+	if ( (mode == 0xF) && (range == 0xF) ) { //default mode, enable = 0, all control signals 0
+		
+		//mode signal
+		GPIOC_SignalOFF(5);
+		GPIOC_SignalOFF(6);
+		GPIOC_SignalOFF(13);
+		
+		//range signals
+		GPIOE_SignalOFF(5);
+		GPIOE_SignalOFF(6);
+		GPIOE_SignalOFF(7);
+		
+		//enable signal
+		GPIOB_SignalOFF(15);
+	} else {
+		//outputSignalON(0xF ); //turn on the enable signal
+		
+		//turn on the desired control signals
+		
+		//mode signal
+		GPIOC -> ODR |= (mode & 1)<<5;
+		GPIOC -> ODR |= ((mode>>1) & 1)<<6;
+		GPIOC -> ODR |= ((mode>>2) & 1)<<13;
+
+		//range signals
+		GPIOE -> ODR |= (range & 1)<<5;
+		GPIOE -> ODR |= ((range>>1) & 1)<<6;
+		GPIOE -> ODR |= ((range>>2) & 1)<<7;
+
+		//GPIOE->ODR |= mode << 3;
+		
+		//enable signal
+	  GPIOE_SignalON(3);
+	}
+}
+
+
+
 //turn on the buzzer for a specified number of milli-seconds 
 //max value for the timer is 6500 ms (=6.5s)
 void buzzerOn(int miliseconds) { 
-	GPIOB->BSRR |= 1U << 4;
+	GPIOE->BSRR |= 1U << 4;
 	
 	//convert miliseconds 
 	//TIM7->ARR is 16 bit register, so we have to avoid overflowing
@@ -208,7 +282,7 @@ void buzzerOn(int miliseconds) {
 
 void buzzerOFF() {
 	
-	GPIOB->BSRR |= (1U <<4) << 16;					/*Enable interrupts */
+	GPIOE->BSRR |= (1U <<4) << 16;					/*Enable interrupts */
 	TIM7->CR1 &= ~TIM_CR1_CEN;  //stop timer
 }
 

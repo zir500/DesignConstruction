@@ -5,6 +5,7 @@
 	void init_GIPOB(void);
 	void init_GPIOE(void);
 	void init_TIM7(void);
+	void init_GIPOC(void);
 
 	void SysTick_Handler(void);
 	void Delay (uint32_t dlyTicks);
@@ -12,7 +13,7 @@
 	void outputSignalON(unsigned int gpio_no);
   void outputSignalOFF(unsigned int gpio_no);
 	void waitForRelease(void);
-	void selectMode(unsigned int mode);
+	void selectMode(unsigned int mode, unsigned int range);
 	void buzzerOn(int miliseconds);
 	void buzzerOFF(void);
 

@@ -63,7 +63,7 @@ RangeMenuSettings openManualVoltage() {
 	int buttonArray[6] = {0,1,2,3,4,7};
 	int size = 6;
 	
-	selectMode(0xF);
+	selectMode(0xF, 0xF);
 	
 	int buttonPressed = printAndWait("Voltage Manual", " 1.10V  2.1V  3.100mV 4.10mV 5.1mV ", buttonArray, size);
 	RangeMenuSettings selectedSettings;
@@ -132,7 +132,7 @@ RangeMenuSettings openManualCurrent() {
 	int buttonArray[4] = {0,1,2,7};
 	int size = 4;
 	
-	selectMode(0xF);
+	selectMode(0xF, 0xF);
 	
 	int buttonPressed = printAndWait("Current Manual", "1.1A  2.100mA 3.10mA ", buttonArray, size);
 	RangeMenuSettings selectedSettings;
@@ -198,7 +198,7 @@ RangeMenuSettings openManualResistance() {
 	int buttonArray[5] = {0,1,2,3,7};
 	int size = 5;
 	
-	selectMode(0xF);
+	selectMode(0xF, 0xF);
 	
 	int buttonPressed = printAndWait("Resistance Manual", "1.1MOhm 2.100kOhm 3.10kOhm 4.1kOhm ", buttonArray, size);
 
@@ -615,7 +615,7 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity) {
 			rangeString = currentState.rangeString;
 			units = currentState.unitString;
 			
-			selectMode( typeMode | (rangeMode<<2));
+			selectMode(typeMode , rangeMode);
 			value = read_ADC1();
 			actualValue = retSignedValue(value, currentState.scalingFactor);
 			

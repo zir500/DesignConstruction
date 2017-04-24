@@ -72,13 +72,15 @@ int main(){
   }
 		
 	//Initialisers
+		ADC1_init();
 	initLCD();
 	SWT_Init();
 	LED_Init();
 	init_GIPOB();
-	ADC1_init();
-	init_TIM7();
+	init_GIPOC();
 	init_GPIOE();
+
+	init_TIM7();
 	serial_init(); //either initButtons or serial_init should be commented as they are using the same port
 
 	//printf("START");
