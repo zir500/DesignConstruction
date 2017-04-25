@@ -16,5 +16,12 @@
 	void selectMode(unsigned int mode, unsigned int range);
 	void buzzerOn(int miliseconds);
 	void buzzerOFF(void);
+	
+	void GPIOB_SignalOFF(unsigned int gpio_no);
+	void GPIOC_SignalON(unsigned int gpio_no);
+	void GPIOC_SignalOFF(unsigned int gpio_no);
+	void GPIOE_SignalON(unsigned int gpio_no);
+	void GPIOF_SignalOFF(unsigned int gpio_no);
+
 
 #endif //__COMMON_FUNCTIONS_H

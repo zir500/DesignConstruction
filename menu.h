@@ -23,10 +23,13 @@ typedef enum {
 	MENU_ID_RESISTANCE_AUTO_RANGE,
 	MENU_ID_RESISTANCE_CONTINUITY,
 	
+	MENU_ID_CAPACITANCE,
+	
 	MENU_ID_MAX,
 	MENU_ID_MIN,
 	
 	MENU_ID_COMPUTER_LINK,
+	MENU_ID_SIGNAL_GENERATOR,
 }MenuIds;
 
 //TODO rename 
@@ -50,6 +53,9 @@ int printAndWait(char firstLineString[], char secondLineString[], int buttons[],
 MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity);
 float retSignedValue(int readValue, float rangeValue);
 MenuIds computerLinkMenu(void);
+MenuIds signalGeneratorMenu(void);
+MenuIds capacitanceMenu(void);
+
 
 
 

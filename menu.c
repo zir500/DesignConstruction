@@ -11,6 +11,8 @@
 #include "serial.h"
 #include <stdio.h>
 #include <string.h>
+#include "DDS.h"
+#include <math.h>
 
 extern char RECIEVE_BUFFER[RECIEVE_BUFFER_SIZE];
 
@@ -19,6 +21,8 @@ int MULTIMETER_MODE = MODE_VOLTAGE;
 
 
 #define SCROLL_RATE 400
+
+#define PI 3.141592653
 
 const float maximInputVoltage = 3.0; // The input voltage which represents a maximum reading.
 float maximumValue = 0.0;
@@ -234,12 +238,13 @@ RangeMenuSettings openManualResistance() {
 
 MenuIds openMenu(){
 
-	int buttonArray[5] = {0,1,2,3,7};
-	int size = 5;
-	int buttonPressed = printAndWait("Select Function", " 1.Voltage  2.Current  3.Resistance  4.Computer Mode   ", buttonArray, size);
+	int buttonArray[6] = {0,1,2,3,4,5};
+	int size = 6;
+	int buttonPressed = printAndWait("Select Function", " 1.Voltage  2.Current  3.Resistance 4.Capacitance 5.Computer Mode  6.Signal Generator  ", buttonArray, size);
 	
 	MenuIds selectedMenu = MENU_ID_VOLTAGE; 
 	switch (buttonPressed){
+		default:
 		case 0:
 			selectedMenu = MENU_ID_VOLTAGE;
 			break;
@@ -251,12 +256,17 @@ MenuIds openMenu(){
 		case 2:
 			selectedMenu =  MENU_ID_RESISTANCE;
 			break;
+		
 		case 3:
-			selectedMenu = MENU_ID_COMPUTER_LINK;
+			selectedMenu = MENU_ID_CAPACITANCE;
 			break;
 		
-		case 7:
-			selectedMenu = MENU_ID_MEASUREMENT; //GO TO measuerment menu
+		case 4:
+			selectedMenu = MENU_ID_COMPUTER_LINK;;
+			break;
+		
+		case 5:
+			selectedMenu = MENU_ID_SIGNAL_GENERATOR;
 			break;
 	}
 	return selectedMenu;
@@ -377,7 +387,7 @@ void menu(){
 				break; 
 			
 			case MENU_ID_OPEN:
-				LED_Out(15);
+				LED_Out(63);
 				selectedMenuID = openMenu();
 				break;
 			
@@ -469,8 +479,18 @@ void menu(){
 				break;
 			
 			case MENU_ID_COMPUTER_LINK:
-				LED_Out(128);
+				//LED_Out(128);
 				computerLinkMenu();
+				break;
+			
+			case MENU_ID_CAPACITANCE:
+			
+				selectedMenuID = capacitanceMenu();
+				break;
+			
+			case MENU_ID_SIGNAL_GENERATOR:
+				LED_Out(128);
+				selectedMenuID = signalGeneratorMenu();
 				break;
 			
 			default:
@@ -503,6 +523,148 @@ MenuIds computerLinkMenu(){
 	}
 }
 	
+MenuIds signalGeneratorMenu(){
+	long frequency = 1000;
+	
+	long max_frequency = 60000000; 
+	long min_frequency = 1;
+	char printedString[16];
+	
+	//turn on enable switch 
+	GPIOE_SignalON(3);
+	
+	while(1){
+		int buttonArray[4] = {0,1,2,7};
+		int size = 4;
+		
+		sprintf(printedString, "Fq %lu            ", frequency);
+		int buttonPressed = printAndWait(printedString, " 1.+  2.-  3.Sine/Square  ", buttonArray, size);
+		
+		
+		
+		switch(buttonPressed) {
+			case 0: 
+				frequency += 1000;
+				if (frequency > max_frequency) {
+					frequency = max_frequency;
+				}
+				setFrequency(frequency);
+				break;
+				
+			case 1:
+				frequency -= 1000;
+				if (frequency < min_frequency) {
+					frequency = min_frequency;
+				}
+				setFrequency(frequency);
+				break;
+			
+			case 2: 
+				//Swap Sin/square wave bit
+				GPIOB->ODR ^= 0x8000;
+				break;
+			
+			case 7:
+				return MENU_ID_OPEN;
+		}
+	}
+}
+
+MenuIds capacitanceMenu() {
+	
+	int buttonArray[1] = {7};	// What button to listen for.
+	int size = 1;					//Number of buttons to listen for.
+
+	int buttonPressed = -1;
+	
+	while( buttonPressed != 7 ){
+
+		buttonPressed = DelayForButton(100, buttonArray, size);
+		
+		long freq;
+		long maxFreq = 30000;
+		
+		//set to sinWave
+		GPIOB_SignalOFF(15);
+		
+		uint32_t delay;
+		
+		unsigned int value; // Raw value measured from ADC (0-4096)
+		int actualValue = 0;
+	
+		int storedActualValue = 0;
+		long storedFreq;
+		int minValueRead = 5000;
+		
+		//set to resonance mode
+		GPIOC_SignalON(7);
+		
+		//set voltage mode (2) and lowest range (4)
+		selectMode(2,0);
+		
+		//set voltage AC mode
+		GPIOC_SignalON(13);
+		lcd_write_string("Measuring freq: ", 0, 0);
+
+	  char frqToWrite[16];
+	
+		int incStepSize = 10;
+
+		for (freq = 1; freq <= maxFreq; freq+=incStepSize) {
+			setFrequency(freq);
+			
+			//calculate and set delay
+			delay = (uint32_t) ( (1.0/freq) / 1000.0);
+			Delay(250);
+			
+			value = read_ADC1();
+			actualValue = retSignedValue(value, 0.002*1000);
+			printf("%d,", value);
+			
+			if(freq == 200){
+				int j=1;
+			} else if (freq == 87) {
+				int j=1;
+			} else if (freq == 400) {
+				int j=1;
+			}
+			
+			if ( (freq > 1000) && (freq < 5000) ) {
+				incStepSize = 100;
+			} else if (freq > 5000) {
+				incStepSize = 1000;
+			} 
+			
+
+			if (value < minValueRead) {
+				minValueRead = value;
+				storedFreq = freq;
+				storedActualValue = actualValue;
+			}
+			sprintf(frqToWrite, "%ld-%u", freq, value);
+			lcd_write_string(frqToWrite, 1,0);
+			
+		}
+		
+		lcd_clear_display();
+		double capacitance;
+		
+		capacitance = (1 / ( pow( ( 2 * PI * storedFreq), 2) * 0.033 ) ); 		
+		display_Measure("Capacitance", ' ', "", "F", capacitance);			
+		
+		Delay(10000);
+
+		//set voltage DC mode
+		GPIOC_SignalOFF(13);
+		
+		//set resonance off
+		GPIOC_SignalOFF(7);
+	
+	} 
+	
+	return MENU_ID_OPEN;
+}
+
 //isContinuity acts like a Bool type 
 RangeIds autoRanging(RangeIds currentRange, int isContinuity) {
 	
@@ -567,7 +729,6 @@ RangeIds autoRanging(RangeIds currentRange, int isContinuity) {
 	return currentRange;
 }
 
-
 MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity) {
 	
 	int buttonArray[3] = {5,6,7};	// What button to listen for.
@@ -579,7 +740,7 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity) {
 	int buttonPressed = -1;
 	
 	maximumValue = 0.0;
-  minimumValue = 10.0;
+	minimumValue = 10.0;
 	
 	unsigned int value; // Raw value measured from ADC (0-4096)
 	float actualValue; // Actual value being represented by the input (eg 100 mA)

@@ -104,24 +104,31 @@ void init_GIPOC(){
 
   GPIOC->MODER    &= ~((3UL <<  2* 5 ) |		
                        (3UL <<  2* 6 ) |
-                       (3UL <<  2* 13) );   /* PB. 5,6,13 is output               */
+											 (3UL <<  2* 7 ) |
+                       (3UL <<  2* 13) );   /* PB. 5,6,7,13 is output               */
   GPIOC->MODER    |=  ((1UL <<  2* 5 ) | 
                        (1UL <<  2* 6 ) |
+											 (1UL <<  2* 7 ) |
 											 (1UL <<  2* 13) ); 
   GPIOC->OTYPER   &= ~((1UL <<    5 ) |
                        (1UL <<    6 ) |
-                       (1UL <<    13) );   /* PB 5,6,13 is output Push-Pull     */
+											 (1UL <<    7 ) |
+                       (1UL <<    13) );   /* PB 5,6,7,13 is output Push-Pull     */
   GPIOC->OSPEEDR  &= ~((3UL << 2* 5 ) |
                        (3UL << 2* 6 ) |
-                       (3UL << 2* 13) );   /* PB. 5,6, 13 is 50MHz Fast Speed     */
+											 (3UL << 2* 7 ) |
+                       (3UL << 2* 13) );   /* PB. 5,6,7, 13 is 50MHz Fast Speed     */
   GPIOC->OSPEEDR  |=  ((2UL << 2* 5 ) |
                        (2UL << 2* 6 ) | 
+											 (2UL << 2* 7 ) |
                        (2UL << 2* 13) ); 
   GPIOC->PUPDR    &= ~((3UL << 2* 5 ) |
                        (3UL << 2* 6 ) |
-                       (3UL << 2* 13) );   /* PB.5,6,13 is Pull up              */
+ 											 (3UL << 2* 7 ) |
+                       (3UL << 2* 13) );   /* PB.5,6,7, 13 is Pull up              */
   GPIOC->PUPDR    |=  ((1UL << 2* 5 ) |
                        (1UL << 2* 6 ) | 
+											 (1UL << 2* 7 ) |											 
                        (1UL << 2* 13) ); 
 }
 
