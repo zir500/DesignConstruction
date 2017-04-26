@@ -15,16 +15,20 @@
 #include <math.h>
 
 extern char RECIEVE_BUFFER[RECIEVE_BUFFER_SIZE];
+extern int bufferEmpty;
+extern int numReceuives;
 
+#define ADC_VREF 3.0f
 
 int MULTIMETER_MODE = MODE_VOLTAGE;
+int VOLTAGE_COUPLING_MODE = 0; //0 for DC coupling, 1 for AC Coupling (matches control signals)
 
 
 #define SCROLL_RATE 400
 
 #define PI 3.141592653
 
-const float maximInputVoltage = 3.0; // The input voltage which represents a maximum reading.
+const float maximInputVoltage = 2.97; // The input voltage which represents a maximum reading.
 float maximumValue = 0.0;
 float minimumValue = 10.0;
 
@@ -43,7 +47,7 @@ MenuIds openVoltageMenu(){
 	MULTIMETER_MODE = MODE_VOLTAGE;
 	int buttonArray[3] = {0,1,7};
 	int size = 3;
-	int buttonPressed = printAndWait("Select options", "1.Manual Range    2.Auotmatic Range ", buttonArray, size);
+	int buttonPressed = printAndWait("Manual/Auto Mode?", "1.Manual Range    2.Auotmatic Range ", buttonArray, size);
 	MenuIds selectedMenu = MENU_ID_MEASUREMENT; 
 	
 	switch(buttonPressed) {
@@ -52,6 +56,32 @@ MenuIds openVoltageMenu(){
 			break;
 		case 1:
 			selectedMenu = MENU_ID_VOLTAGE_AUTO_RANGE;
+			break;
+		case 7:
+			selectedMenu = MENU_ID_VOLTAGE_COUPLING_SELECT;;
+			break;
+	}
+	
+	return selectedMenu;
+}
+
+MenuIds openVoltageCouplingMenu(){
+	
+	MULTIMETER_MODE = MODE_VOLTAGE;
+	int buttonArray[3] = {0,1,7};
+	int size = 3;
+	int buttonPressed = printAndWait("Select Coupling", "1.DC   2.AC  ", buttonArray, size);
+	MenuIds selectedMenu = MENU_ID_VOLTAGE; //Default to voltage menu next (only other option is back)
+
+	
+	switch(buttonPressed) {
+		case 0: 
+			VOLTAGE_COUPLING_MODE = 0; //Set DC Coupling
+			selectedMenu = MENU_ID_VOLTAGE;
+			break;
+		case 1:
+			VOLTAGE_COUPLING_MODE = 1; //Set AC Coupling
+			selectedMenu = MENU_ID_VOLTAGE;
 			break;
 		case 7:
 			selectedMenu = MENU_ID_OPEN;
@@ -196,6 +226,25 @@ MenuIds openResistanceMenu(){
 	return selectedMenu;
 }
 
+MenuIds continutiyMenu(){
+	int buttonArray[1] = {7};	// What button to listen for.
+	int size = 1;					//Number of buttons to listen for.
+
+	int buttonPressed = -1;
+	lcd_write_string("Coontinuit test", 0 ,0);
+	while( buttonPressed != 7 ){
+		buttonPressed = DelayForButton(100, buttonArray, size);
+		
+		int value = read_ADC1();
+		float V_in = value * (ADC_VREF/4096.0f);
+		
+		if (V_in < 0.0626f) {
+			buzzerOn(200);
+		}
+	}
+	return MENU_ID_RESISTANCE;
+}
+
 RangeMenuSettings openManualResistance() {
 	
 	MULTIMETER_MODE = MODE_RESISTANCE;
@@ -237,7 +286,7 @@ RangeMenuSettings openManualResistance() {
 }
 
 MenuIds openMenu(){
-
+	
 	int buttonArray[7] = {0,1,2,3,4,5,6};
 	int size = 7;
 	int buttonPressed = printAndWait("Select Function", " 1.Voltage 7.Signal  Generator  6.Computer Mode  5.Inductance 4.Capacitance  3.Resistance  2.Current ", buttonArray, size);
@@ -246,7 +295,7 @@ MenuIds openMenu(){
 	switch (buttonPressed){
 		default:
 		case 0:
-			selectedMenu = MENU_ID_VOLTAGE;
+			selectedMenu = MENU_ID_VOLTAGE_COUPLING_SELECT;
 			break;
 		
 		case 1:
@@ -357,7 +406,7 @@ int printAndWait(char firstLineString[], char* secondLineString, int buttons[], 
 			lcd_write_string(truncatedMsg, 1, 0);
 			
 		} else {
-			lcd_write_string(message, 1, 0);
+			lcd_write_string(secondLineString, 1, 0);
 		}
 		buttonPressed = DelayForButton(SCROLL_RATE, buttons, size);	
 	}
@@ -372,22 +421,16 @@ void menu(){
 	selectedSettings.selectedRange = RANGE_ID_RANGE_1;
 
 	int autoRange = 0; 
-	int isContinuity = 0;
 	while(1){
-		
 		waitForRelease();
 		lcd_clear_display();
-		//back button always on
-		LED_On(7);
 
 		switch (selectedMenuID) {
 			
 			case MENU_ID_MEASUREMENT:
-				LED_Out(96);
+				LED_Out(224);
 			
-				selectedMenuID = measurementMenu(autoRange, selectedSettings.selectedRange, isContinuity);
-				//reset
-				isContinuity = 0;
+				selectedMenuID = measurementMenu(autoRange, selectedSettings.selectedRange);
 				break; 
 			
 			case MENU_ID_OPEN:
@@ -396,14 +439,19 @@ void menu(){
 				break;
 			
 			case MENU_ID_VOLTAGE:  //go to Voltage menu
-				LED_Out(3);
+				LED_Out(131);
 				selectedMenuID = openVoltageMenu();
+				break;
+			
+			case MENU_ID_VOLTAGE_COUPLING_SELECT:
+				LED_Out(131);
+				selectedMenuID = openVoltageCouplingMenu();
 				break;
 			
 			case MENU_ID_VOLTAGE_MANUAL_RANGE:
 				//manual range for Current
 				//go to select range menu
-				LED_Out(31);
+				LED_Out(143);
 				selectedSettings = openManualVoltage();	
 				selectedMenuID = selectedSettings.nextMenu;
 			  autoRange = 0; 
@@ -419,14 +467,14 @@ void menu(){
 			
 			case MENU_ID_CURRENT:
 				//got to Current menu
-				LED_Out(3);
+				LED_Out(131);
 				selectedMenuID = openCurrentMenu();
 				break; 
 			
 			case MENU_ID_CURRENT_MANUAL_RANGE:
 				//manual range for CURRENT
 				//go to select range menu
-			  LED_Out(7);
+			  LED_Out(135);
 				selectedSettings = openManualCurrent();
 				selectedMenuID = selectedSettings.nextMenu;
 				autoRange = 0; 
@@ -445,14 +493,14 @@ void menu(){
 			
 			case MENU_ID_RESISTANCE:
 				//got to resistance menu
-			  LED_Out(3);
+			  LED_Out(135);
 				selectedMenuID = openResistanceMenu();
 				break;
 			
 			case MENU_ID_RESISTANCE_MANUAL_RANGE:
 				//manual range for resistance
 				//go to select range menu
-				LED_Out(15);
+				LED_Out(143);
 				selectedSettings = openManualResistance();
 				selectedMenuID = selectedSettings.nextMenu;
 				autoRange = 0; 
@@ -467,27 +515,28 @@ void menu(){
 				break;
 			
 			case MENU_ID_RESISTANCE_CONTINUITY:
-				selectedMenuID = MENU_ID_MEASUREMENT;
-				autoRange = 1; 		
-			  isContinuity = 1;
+				LED_Out(128);
+				selectedMenuID = continutiyMenu();
+				selectedSettings.selectedRange = RANGE_ID_RANGE_1mV; //go to continuity range
 				break;
 			
 			case MENU_ID_MIN:
-				LED_Out(0);
+				LED_Out(128);
 				selectedMenuID = openMinMenu();
 				break;
 			
 			case MENU_ID_MAX:
-				LED_Out(0);
+				LED_Out(128);
 				selectedMenuID = openMaxMenu();
 				break;
 			
 			case MENU_ID_COMPUTER_LINK:
-				//LED_Out(128);
+				LED_Out(128);
 				computerLinkMenu();
 				break;
 			
 			case MENU_ID_CAPACITANCE:
+				LED_Out(128);
 				selectedMenuID = capacitanceMenu();
 				break;
 			
@@ -497,7 +546,7 @@ void menu(){
 				break; 
 			
 			case MENU_ID_SIGNAL_GENERATOR:
-				LED_Out(128);
+				LED_Out(191);
 				selectedMenuID = signalGeneratorMenu();
 				break;
 			
@@ -511,23 +560,39 @@ void menu(){
 
 // Work in progress 
 MenuIds computerLinkMenu(){
+	int i=0;
+	
 	while(1){
-		if (strcmp(RECIEVE_BUFFER, "voltage mode") == 0) {
-			//go to voltage mode
-			lcd_clear_display();
-			Delay(100); //NEED THIS, otherwise nothing is displayed
-			lcd_write_string("Voltage Mode",0,0);
+		if(bufferEmpty != 1){
+			if (strcmp(RECIEVE_BUFFER, "voltage mode") == 0) {
+				//go to voltage mode
+				lcd_clear_display();
+				Delay(100); //NEED THIS, otherwise nothing is displayed
+				lcd_write_string("Voltage Mode",0,0);
+					memset(RECIEVE_BUFFER, 0, RECIEVE_BUFFER_SIZE);
+				MULTIMETER_MODE = MODE_VOLTAGE;
+				
+			} else if (strcmp(RECIEVE_BUFFER, "resistance mode") == 0) {
+				//go to resistance mode 
+				lcd_clear_display();
+				Delay(100); //NEED THIS, otherwise nothing is displayed
+				lcd_write_string("Resistance Mode",0,0);
 				memset(RECIEVE_BUFFER, 0, RECIEVE_BUFFER_SIZE);
-			MULTIMETER_MODE = MODE_VOLTAGE;
-			
-		} else if (strcmp(RECIEVE_BUFFER, "resistance mode") == 0) {
-			//go to resistance mode 
-			lcd_clear_display();
-			Delay(100); //NEED THIS, otherwise nothing is displayed
-			lcd_write_string("Resistance Mode",0,0);
-			memset(RECIEVE_BUFFER, 0, RECIEVE_BUFFER_SIZE);
-		}	
-			printf("\n%04d\n", read_ADC1());
+				
+			}	else if (strcmp(RECIEVE_BUFFER, "send value") == 0){
+				//memset(RECIEVE_BUFFER, 0, RECIEVE_BUFFER_SIZE);
+				//Delay(10);
+				bufferEmpty=1;
+				int value = read_ADC1();
+				printf("\n%04d\n", value);
+				
+				
+				//DEBUG
+				lcd_clear_display();
+				Delay(100); //NEED THIS, otherwise nothing is displayed
+				lcd_write_string("Send Reading",0,0);
+			}
+		}
 	}
 }
 	
@@ -663,7 +728,12 @@ MenuIds capacitanceMenu() {
 				
 				value = read_ADC1();
 				//actualValue = retSignedValue(value, 0.002*1000);
-				printf("%d,", value);
+				printf("%ld,%d\n", freq, value);
+				
+				
+				if (freq >= 100){
+					int i=0;
+				}
 				
 				if ( (freq > 1000) && (freq < 5000) ) {
 					incStepSize = 100;
@@ -677,12 +747,12 @@ MenuIds capacitanceMenu() {
 					storedFreq = freq;
 				}
 				
-				if (value - minValueRead > 500 ) {
-					//Increment range 
+				if ( (value - minValueRead > 500 ) || (value > 4090) ) {
+					incStepSize = 10;
 					break;
 				}
 				
-				sprintf(frqToWrite, "%ld-%u", freq, value);
+				sprintf(frqToWrite, "%ld-%u %d", freq, value, startRange);
 				lcd_write_string(frqToWrite, 1,0);
 			}
 			
@@ -725,8 +795,7 @@ MenuIds inductanceMenu() {
 	return MENU_ID_OPEN;
 }
 
-//isContinuity acts like a Bool type 
-RangeIds autoRanging(RangeIds currentRange, int isContinuity) {
+RangeIds autoRanging(RangeIds currentRange) {
 	
 	RangeIds upperLimit;
 	RangeIds lowerLimit;
@@ -744,12 +813,7 @@ RangeIds autoRanging(RangeIds currentRange, int isContinuity) {
 			break;
 		case MODE_RESISTANCE:
 			upperLimit = RANGE_ID_RANGE_10;
-
-			if ( isContinuity == 0 ) {
-				lowerLimit = RANGE_ID_RANGE_10m;
-			} else {
-				lowerLimit = RANGE_ID_RANGE_1mV;
-			}
+			lowerLimit = RANGE_ID_RANGE_1mV;
 			break; 
 	}
 
@@ -789,7 +853,7 @@ RangeIds autoRanging(RangeIds currentRange, int isContinuity) {
 	return currentRange;
 }
 
-MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity) {
+MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 	
 	int buttonArray[3] = {5,6,7};	// What button to listen for.
 	int size = 3;					//Number of buttons to listen for.
@@ -802,8 +866,21 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity) {
 	maximumValue = 0.0;
 	minimumValue = 10.0;
 	
+	//#define AVERAGING_SIZE 10
+	//int valueHistory[AVERAGING_SIZE] = {0};
+	//int averagingSamepleNum = 0;
+	
 	unsigned int value; // Raw value measured from ADC (0-4096)
 	float actualValue; // Actual value being represented by the input (eg 100 mA)
+	
+	//set coupling
+	//GPIOC->ODR &= ~(0x2000);
+	//GPIOC->ODR |= (VOLTAGE_COUPLING_MODE << 13);
+	if (VOLTAGE_COUPLING_MODE == 1) {
+		GPIOC_SignalON(13);
+	} else {
+		GPIOC_SignalOFF(13);
+	}
 	
 	while( buttonPressed != 7 ){
 
@@ -825,7 +902,7 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity) {
 		} else {
 		
 			if (isAutoRangeOn == 1) {
-				range = autoRanging(range, isContinuity);
+				range = autoRanging(range);
 				modeString = 'A';
 			}
 			
@@ -837,7 +914,21 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity) {
 			units = currentState.unitString;
 			
 			selectMode(typeMode , rangeMode);
+			
 			value = read_ADC1();
+			/*
+			valueHistory[averagingSamepleNum] = value;
+			if(averagingSamepleNum > AVERAGING_SIZE-1){
+				averagingSamepleNum++;
+			} else {
+				averagingSamepleNum = 0;
+			}
+			
+			int averageValue = 0;
+			for(int j=0; j<AVERAGING_SIZE; j++){
+				averageValue += valueHistory[j]/AVERAGING_SIZE;
+			} */
+			
 			actualValue = retSignedValue(value, currentState.scalingFactor);
 			
 			if (actualValue > maximumValue) {
@@ -854,13 +945,16 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity) {
 			}				
 			
 			//turn buzzer on for continuit test
-			if ( isContinuity == 1 ) {
+	/*		if ( isContinuity == 1 ) {
 				if ( ( actualValue < 50 ) && (rangeMode == RANGE_ID_RANGE_1mV) ) {
 					buzzerOn(500);
 				}
-			}
+			}*/
 			
+			//display meassurments on the LCD 
+
 			display_Measure(measurement, modeString, rangeString, units, actualValue);	
+
 			
 			//Set which menu to return to if the menu button is pressed.
 			switch(MULTIMETER_MODE){
@@ -883,7 +977,6 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity) {
 	return selectedMenu;
 }
 
-const float ADC_VREF = 3.0;
 
 //Scales the adc reading to produce a meaningful measurement value.
 float retSignedValue(int readValue, float scalingFactor) { 

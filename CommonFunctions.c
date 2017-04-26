@@ -250,10 +250,14 @@ void selectMode(unsigned int mode, unsigned int range) {
 		
 		//turn on the desired control signals
 		
+		//clear bits for mode and range signals 
+		GPIOC -> ODR &= ~(0x30);
+		
+		GPIOE -> ODR &= ~(0x70);
+		
 		//mode signal
 		GPIOC -> ODR |= (mode & 1)<<5;
 		GPIOC -> ODR |= ((mode>>1) & 1)<<6;
-		GPIOC -> ODR |= ((mode>>2) & 1)<<13;
 
 		//range signals
 		GPIOE -> ODR |= (range & 1)<<5;

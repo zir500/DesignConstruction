@@ -11,6 +11,7 @@ typedef enum {
 	MENU_ID_MEASUREMENT,
 	MENU_ID_OPEN,
 	MENU_ID_VOLTAGE,
+	MENU_ID_VOLTAGE_COUPLING_SELECT,
 	MENU_ID_VOLTAGE_MANUAL_RANGE,
 	MENU_ID_VOLTAGE_AUTO_RANGE,
 
@@ -51,12 +52,13 @@ typedef struct{
 
 void menu(void);
 int printAndWait(char firstLineString[], char secondLineString[], int buttons[], int size);
-MenuIds measurementMenu(int isAutoRangeOn, RangeIds range, int isContinuity);
+MenuIds measurementMenu(int isAutoRangeOn, RangeIds range);
 float retSignedValue(int readValue, float rangeValue);
 MenuIds computerLinkMenu(void);
 MenuIds signalGeneratorMenu(void);
 MenuIds capacitanceMenu(void);
 MenuIds inductanceMenu(void);
+MenuIds continutiyMenu(void);
 
 
 

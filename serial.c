@@ -9,6 +9,11 @@
 
 char RECIEVE_BUFFER[RECIEVE_BUFFER_SIZE];
 
+int bufferEmpty = 1;
+int numReceuives = 0;
+int buffer_index = 0;
+
+
 void send_packet(char* packet){
 	printf("\n%s\n", packet);
 }
@@ -49,9 +54,9 @@ void serial_init(void) {
 
 
 void USART2_IRQHandler(void) {
-
-	receive();
-
+	RECIEVE_BUFFER[buffer_index] = USART2->DR;
+	buffer_index++;
+	//receive();
 }
 
 /*Blocking function which waits for a packet to be fully received before returning. 
@@ -86,7 +91,7 @@ void receiveOLD(char receivedPacket[], int bufferLength, int* packetLength){
 			receivedString[numChars] = '\0'; 
 
 			//Send the acknowledgement for this packet
-			send_packet("ack");
+			//send_packet("ack");
 			               
 			// Copy the packet data into the output buffer & set the length output.
 			strncpy(receivedPacket, receivedString, bufferLength);
@@ -122,6 +127,8 @@ void receive(){
 		//Replace the final \n with a \0 for convinience
 		receiveBuffer[numberOfReceievedBytes-1] = '\0';
 		strcpy(RECIEVE_BUFFER, receiveBuffer);
+		bufferEmpty = 0;
+		numReceuives++;
 
 		//lcd_clear_display();
 		//lcd_write_string(receiveBuffer, 0, 0);
