@@ -24,6 +24,7 @@ typedef enum {
 	MENU_ID_RESISTANCE_CONTINUITY,
 	
 	MENU_ID_CAPACITANCE,
+	MENU_ID_INDUCTANCE,
 	
 	MENU_ID_MAX,
 	MENU_ID_MIN,
@@ -55,6 +56,7 @@ float retSignedValue(int readValue, float rangeValue);
 MenuIds computerLinkMenu(void);
 MenuIds signalGeneratorMenu(void);
 MenuIds capacitanceMenu(void);
+MenuIds inductanceMenu(void);
 
 
 

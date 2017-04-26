@@ -238,9 +238,9 @@ RangeMenuSettings openManualResistance() {
 
 MenuIds openMenu(){
 
-	int buttonArray[6] = {0,1,2,3,4,5};
-	int size = 6;
-	int buttonPressed = printAndWait("Select Function", " 1.Voltage  2.Current  3.Resistance 4.Capacitance 5.Computer Mode  6.Signal Generator  ", buttonArray, size);
+	int buttonArray[7] = {0,1,2,3,4,5,6};
+	int size = 7;
+	int buttonPressed = printAndWait("Select Function", " 1.Voltage 7.Signal  Generator  6.Computer Mode  5.Inductance 4.Capacitance  3.Resistance  2.Current ", buttonArray, size);
 	
 	MenuIds selectedMenu = MENU_ID_VOLTAGE; 
 	switch (buttonPressed){
@@ -262,10 +262,14 @@ MenuIds openMenu(){
 			break;
 		
 		case 4:
-			selectedMenu = MENU_ID_COMPUTER_LINK;;
+			selectedMenu = MENU_ID_INDUCTANCE;
 			break;
 		
 		case 5:
+			selectedMenu = MENU_ID_COMPUTER_LINK;
+			break;
+		
+		case 6:
 			selectedMenu = MENU_ID_SIGNAL_GENERATOR;
 			break;
 	}
@@ -387,7 +391,7 @@ void menu(){
 				break; 
 			
 			case MENU_ID_OPEN:
-				LED_Out(63);
+				LED_Out(127);
 				selectedMenuID = openMenu();
 				break;
 			
@@ -484,9 +488,13 @@ void menu(){
 				break;
 			
 			case MENU_ID_CAPACITANCE:
-			
 				selectedMenuID = capacitanceMenu();
 				break;
+			
+			case MENU_ID_INDUCTANCE:
+				LED_Out(128);
+				selectedMenuID = inductanceMenu();
+				break; 
 			
 			case MENU_ID_SIGNAL_GENERATOR:
 				LED_Out(128);
@@ -524,27 +532,41 @@ MenuIds computerLinkMenu(){
 }
 	
 MenuIds signalGeneratorMenu(){
-	long frequency = 1000;
+	long frequency = 0;
+	int incrFreq = 1;
 	
-	long max_frequency = 60000000; 
-	long min_frequency = 1;
+	long max_frequency = 62500000; 
+	long min_frequency = 0;
 	char printedString[16];
 	
 	//turn on enable switch 
 	GPIOE_SignalON(3);
 	
 	while(1){
-		int buttonArray[4] = {0,1,2,7};
-		int size = 4;
+		int buttonArray[8] = {0,1,2,3,4,5,6,7};
+		int size = 8;
 		
-		sprintf(printedString, "Fq %lu            ", frequency);
-		int buttonPressed = printAndWait(printedString, " 1.+  2.-  3.Sine/Square  ", buttonArray, size);
+		sprintf(printedString, "Fq %lu          ", frequency);
+	  int buttonPressed = printAndWait(printedString, " 1.+  2.-  3.Sine/Square  4.10k  5.100k  6.1M  7.10M  ", buttonArray, size);
 		
 		
+		if (frequency >= 100 && frequency <1000) {
+			incrFreq = 10;
+		}	else if (frequency >= 1000 && frequency <10000) {
+			incrFreq = 100;
+		}	else if (frequency >= 10000 && frequency < 100000) {
+			incrFreq = 1000;
+		}	else if (frequency >= 100000 && frequency < 1000000 ) {
+			incrFreq = 10000;
+		}else if (frequency >= 1000000) {
+			incrFreq = 100000;
+		}else if (frequency < 100) {
+			incrFreq = 1;
+		}
 		
 		switch(buttonPressed) {
 			case 0: 
-				frequency += 1000;
+				frequency += incrFreq;
 				if (frequency > max_frequency) {
 					frequency = max_frequency;
 				}
@@ -552,7 +574,7 @@ MenuIds signalGeneratorMenu(){
 				break;
 				
 			case 1:
-				frequency -= 1000;
+				frequency -= incrFreq;
 				if (frequency < min_frequency) {
 					frequency = min_frequency;
 				}
@@ -562,6 +584,27 @@ MenuIds signalGeneratorMenu(){
 			case 2: 
 				//Swap Sin/square wave bit
 				GPIOB->ODR ^= 0x8000;
+				Delay(10);
+				break;
+			
+			case 3:
+				frequency = 10000;
+				Delay(10);
+				break;
+			
+			case 4:
+				frequency = 100000;
+				Delay(10);
+				break; 
+			
+			case 5:
+				frequency = 1000000;
+				Delay(10);
+				break;
+			
+			case 6:
+				frequency = 10000000;
+				Delay(10);
 				break;
 			
 			case 7:
@@ -586,63 +629,62 @@ MenuIds capacitanceMenu() {
 		
 		//set to sinWave
 		GPIOB_SignalOFF(15);
-		
+		 
 		uint32_t delay;
 		
 		unsigned int value; // Raw value measured from ADC (0-4096)
-		int actualValue = 0;
 	
-		int storedActualValue = 0;
 		long storedFreq;
 		int minValueRead = 5000;
 		
 		//set to resonance mode
 		GPIOC_SignalON(7);
 		
-		//set voltage mode (2) and lowest range (4)
-		selectMode(2,0);
+		int startRange = 0;
+				
+		char frqToWrite[16];
+		int incStepSize = 10;
 		
 		//set voltage AC mode
 		GPIOC_SignalON(13);
-		lcd_write_string("Measuring freq: ", 0, 0);
+			
+		for (startRange=0; startRange<=4; startRange++) {
+			selectMode(2,startRange);
+		
+			lcd_write_string("Measuring freq: ", 0, 0);
 
-	  char frqToWrite[16];
-	
-		int incStepSize = 10;
+			minValueRead = 5000;
+			for (freq = 1; freq <= maxFreq; freq+=incStepSize) {
+				setFrequency(freq);
+				
+				//calculate and set delay
+				delay = (uint32_t) ( (1000.0/freq));
+				Delay(250);
+				
+				value = read_ADC1();
+				//actualValue = retSignedValue(value, 0.002*1000);
+				printf("%d,", value);
+				
+				if ( (freq > 1000) && (freq < 5000) ) {
+					incStepSize = 100;
+				} else if (freq > 5000) {
+					incStepSize = 1000;
+				} 
 
-		for (freq = 1; freq <= maxFreq; freq+=incStepSize) {
-			setFrequency(freq);
-			
-			//calculate and set delay
-			delay = (uint32_t) ( (1.0/freq) / 1000.0);
-			Delay(250);
-			
-			value = read_ADC1();
-			actualValue = retSignedValue(value, 0.002*1000);
-			printf("%d,", value);
-			
-			if(freq == 200){
-				int j=1;
-			} else if (freq == 87) {
-				int j=1;
-			} else if (freq == 400) {
-				int j=1;
+				//if peak detected stored the freq and the ADC value
+				if (value < minValueRead) {
+					minValueRead = value;
+					storedFreq = freq;
+				}
+				
+				if (value - minValueRead > 500 ) {
+					//Increment range 
+					break;
+				}
+				
+				sprintf(frqToWrite, "%ld-%u", freq, value);
+				lcd_write_string(frqToWrite, 1,0);
 			}
-			
-			if ( (freq > 1000) && (freq < 5000) ) {
-				incStepSize = 100;
-			} else if (freq > 5000) {
-				incStepSize = 1000;
-			} 
-			
-
-			if (value < minValueRead) {
-				minValueRead = value;
-				storedFreq = freq;
-				storedActualValue = actualValue;
-			}
-			sprintf(frqToWrite, "%ld-%u", freq, value);
-			lcd_write_string(frqToWrite, 1,0);
 			
 		}
 		
@@ -661,6 +703,24 @@ MenuIds capacitanceMenu() {
 		GPIOC_SignalOFF(7);
 	
 	} 
+	
+	return MENU_ID_OPEN;
+}
+
+
+MenuIds inductanceMenu() {
+	
+	int buttonArray[1] = {7};	// What button to listen for.
+	int size = 1;					//Number of buttons to listen for.
+
+	int buttonPressed = -1;
+	
+	lcd_write_string("Inductance", 0,0);
+	lcd_write_string("Do stuff here", 1, 0);
+	
+	while( buttonPressed != 7 ){
+		buttonPressed = DelayForButton(100, buttonArray, size);
+	}
 	
 	return MENU_ID_OPEN;
 }

@@ -18,6 +18,7 @@
 	void buzzerOFF(void);
 	
 	void GPIOB_SignalOFF(unsigned int gpio_no);
+	void GPIOB_SignalOn(unsigned int gpio_no);
 	void GPIOC_SignalON(unsigned int gpio_no);
 	void GPIOC_SignalOFF(unsigned int gpio_no);
 	void GPIOE_SignalON(unsigned int gpio_no);
