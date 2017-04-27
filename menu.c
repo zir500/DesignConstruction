@@ -19,7 +19,7 @@ extern char RECIEVE_BUFFER[RECIEVE_BUFFER_SIZE];
 extern int bufferEmpty;
 extern int numReceuives;
 
-#define ADC_VREF 3.0f
+#define ADC_VREF 2.93f
 
 int MULTIMETER_MODE = MODE_VOLTAGE;
 int VOLTAGE_COUPLING_MODE = 0; //0 for DC coupling, 1 for AC Coupling (matches control signals)
@@ -29,7 +29,11 @@ int VOLTAGE_COUPLING_MODE = 0; //0 for DC coupling, 1 for AC Coupling (matches c
 
 #define PI 3.141592653
 
-const float maximInputVoltage = 2.97; // The input voltage which represents a maximum reading.
+const float maximInputVoltage = 2.91; // The input voltage which represents a maximum reading.
+
+const float maximInputVoltageResistance = ADC_VREF;
+
+
 float maximumValue = FLT_MIN;
 float minimumValue = FLT_MAX;
 
@@ -705,6 +709,7 @@ MenuIds capacitanceMenu() {
 	int size = 1;					//Number of buttons to listen for.
 
 	int buttonPressed = -1;
+	long storedFreq;
 	
 	while( buttonPressed != 7 ){
 
@@ -720,7 +725,7 @@ MenuIds capacitanceMenu() {
 		
 		unsigned int value; // Raw value measured from ADC (0-4096)
 	
-		long storedFreq;
+		
 		int minValueRead = 5000;
 		
 		//set to resonance mode
@@ -734,8 +739,9 @@ MenuIds capacitanceMenu() {
 		//set voltage AC mode
 		GPIOC_SignalON(13);
 			
-		for (startRange=0; startRange<=4; startRange++) {
-			selectMode(2,startRange);
+	/*	for (startRange=0; startRange<=4; startRange++) { */
+			//range 100 mv (2)
+			selectMode(2,2);
 		
 			lcd_write_string("Measuring freq: ", 0, 0);
 
@@ -750,7 +756,6 @@ MenuIds capacitanceMenu() {
 				value = read_ADC1();
 				//actualValue = retSignedValue(value, 0.002*1000);
 				printf("%ld,%d\n", freq, value);
-				
 				
 				if (freq >= 100){
 					int i=0;
@@ -782,7 +787,7 @@ MenuIds capacitanceMenu() {
 		lcd_clear_display();
 		double capacitance;
 		
-		capacitance = (1 / ( pow( ( 2 * PI * storedFreq), 2) * 0.033 ) ); 		
+		//capacitance = (1 / ( pow( ( 2 * PI * storedFreq), 2) * 0.033 ) ); 		
 		display_Measure("Capacitance", ' ', "", "F", capacitance, 4);			
 		
 		Delay(10000);
@@ -793,7 +798,7 @@ MenuIds capacitanceMenu() {
 		//set resonance off
 		GPIOC_SignalOFF(7);
 	
-	} 
+	//} 
 	
 	return MENU_ID_OPEN;
 }
@@ -948,7 +953,10 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 			} */
 			
 			actualValue = retSignedValue(value, currentState.scalingFactor);
+
 			actualValue = roundToNDP(actualValue, decimalPlaces);
+			
+			printf("%d, \r\n", value);
 			
 			if (actualValue > maximumValue) {
 				maximumValue = actualValue;
@@ -1004,14 +1012,16 @@ float retSignedValue(int readValue, float scalingFactor) {
 	
 	if ( (MULTIMETER_MODE == MODE_VOLTAGE) || (MULTIMETER_MODE == MODE_CURRENT) ) {
 		retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maximInputVoltage) - (scalingFactor/2.0f);
-	} else {
+	} else if (MULTIMETER_MODE == MODE_RESISTANCE) {
+		retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maximInputVoltageResistance);
+	}  else {
 		retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maximInputVoltage);
-	} 	
+	}
 	return retValue;
 }
 
-float roundToNDP(float value, int n){
-	return roundf((value*pow(10, n))/pow(10, n));
+float roundToNDP(float value, int n) {
+	return roundf((value*pow(10, n)))/pow(10, n);
 }
 
 void resetMinMax() {
