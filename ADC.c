@@ -45,7 +45,7 @@ unsigned int read_ADC1 (void) {
 Note: the string written on the screen has to be less or to 16 characters, 
 otherwise the program crashes 
 */
-void display_Measure(char* measurement, char rangeMode, char* range, char* unit, float value){
+void display_Measure(char* measurement, char rangeMode, char* range, char* unit, float value, int numberOfDPs){
 	
 	char dummyString[16]= {' '};
   char spaces[16] = "               ";
@@ -55,6 +55,6 @@ void display_Measure(char* measurement, char rangeMode, char* range, char* unit,
 	//	char spaces[16] = "               ";
 
 	char t[16] = {' '};
-	sprintf(t, "%.4f %s%s", value, unit, spaces);
+	sprintf(t, "%.*f %s%s", numberOfDPs, value, unit, spaces);
 	lcd_write_string(t,1,0);
 }

@@ -13,6 +13,7 @@
 #include <string.h>
 #include "DDS.h"
 #include <math.h>
+#include <float.h>
 
 extern char RECIEVE_BUFFER[RECIEVE_BUFFER_SIZE];
 extern int bufferEmpty;
@@ -29,8 +30,8 @@ int VOLTAGE_COUPLING_MODE = 0; //0 for DC coupling, 1 for AC Coupling (matches c
 #define PI 3.141592653
 
 const float maximInputVoltage = 2.97; // The input voltage which represents a maximum reading.
-float maximumValue = 0.0;
-float minimumValue = 10.0;
+float maximumValue = FLT_MIN;
+float minimumValue = FLT_MAX;
 
 
 void scrollText(char message[], int messageLength){
@@ -42,7 +43,7 @@ void scrollText(char message[], int messageLength){
 	message[0] = lastCharacter;
 }
 
-MenuIds openVoltageMenu(){
+MenuIds openVoltageMenu(){ 
 	
 	MULTIMETER_MODE = MODE_VOLTAGE;
 	int buttonArray[3] = {0,1,7};
@@ -248,12 +249,12 @@ MenuIds continutiyMenu(){
 RangeMenuSettings openManualResistance() {
 	
 	MULTIMETER_MODE = MODE_RESISTANCE;
-	int buttonArray[5] = {0,1,2,3,7};
-	int size = 5;
+	int buttonArray[4] = {0,1,2,7};
+	int size = 4;
 	
 	selectMode(0xF, 0xF);
 	
-	int buttonPressed = printAndWait("Resistance Manual", "1.1MOhm 2.100kOhm 3.10kOhm 4.1kOhm ", buttonArray, size);
+	int buttonPressed = printAndWait("Resistance Manual", "1.1MOhm 2.100kOhm 3.10kOhm ", buttonArray, size);
 
 	RangeMenuSettings selectedSettings;
 	selectedSettings.nextMenu = MENU_ID_MEASUREMENT;
@@ -272,10 +273,10 @@ RangeMenuSettings openManualResistance() {
 			//manual range of 10kOhm
 			selectedSettings.selectedRange = RANGE_ID_RANGE_100m;
 			break;
-		case 3:
+/*		case 3:
 			//manual range of 1kOhm
 		  selectedSettings.selectedRange = RANGE_ID_RANGE_10m;
-			break; 
+			break; */
 		case 7:
 			selectedSettings.nextMenu = MENU_ID_RESISTANCE;
 			break;
@@ -326,13 +327,20 @@ MenuIds openMenu(){
 }
 
 
-MenuIds openMaxMenu(){
+MenuIds openMaxMenu(RangeIds range){
+	
+	char* units; // The Units of the current value to be displayed.
+	int decimalPlaces;
+	
+	state currentState = stateLookUp[MULTIMETER_MODE][range];
+	units = currentState.unitString;
+	decimalPlaces = currentState.decimalPlaces;
 	
 	int button = 7;
 	int size = 1;
 		
 	char stringValue[16];
-	sprintf(stringValue, "%.4f", maximumValue);
+	sprintf(stringValue, "%.*f %s",decimalPlaces, maximumValue, units);
 	
 	char stringMeasure[16];
 	
@@ -356,28 +364,35 @@ MenuIds openMaxMenu(){
 	return selectedMenu;
 }
 
-MenuIds openMinMenu(){
+MenuIds openMinMenu(RangeIds range) {
+	
+	char* units; // The Units of the current value to be displayed.
+	int decimalPlaces;
+	
+	state currentState = stateLookUp[MULTIMETER_MODE][range];
+	units = currentState.unitString;
+	decimalPlaces = currentState.decimalPlaces;
 	
 	int button = 7;
 	int size = 1;
 		
 	char stringValue[16];
-	sprintf(stringValue, "%.4f", minimumValue);
+	sprintf(stringValue, "%.*f %s",decimalPlaces, minimumValue, units);
 	
 	char stringMeasure[16];
 	
 	MenuIds selectedMenu = MENU_ID_MEASUREMENT; 
 		switch(MULTIMETER_MODE) {
 			case MODE_VOLTAGE: 
-				strncpy(stringMeasure, "Minimum Voltage", 15); 
+				strncpy(stringMeasure, "Min Voltage", 15); 
 				break;
 			
 			case MODE_CURRENT:
-				strncpy(stringMeasure, "Minimum Current", 15); 
+				strncpy(stringMeasure, "Min Current", 15); 
 				break;
 			
 			case MODE_RESISTANCE:
-				strncpy(stringMeasure, "Minimum Resist.", 15); 
+				strncpy(stringMeasure, "Min Resist.", 15); 
 				break;
 		}
 	
@@ -451,10 +466,11 @@ void menu(){
 			case MENU_ID_VOLTAGE_MANUAL_RANGE:
 				//manual range for Current
 				//go to select range menu
-				LED_Out(143);
+				LED_Out(159);
 				selectedSettings = openManualVoltage();	
 				selectedMenuID = selectedSettings.nextMenu;
 			  autoRange = 0; 
+				resetMinMax();
 				break;
 			
 			case MENU_ID_VOLTAGE_AUTO_RANGE:
@@ -463,6 +479,7 @@ void menu(){
 				LED_Out(0);
 				selectedMenuID = MENU_ID_MEASUREMENT;
 				autoRange = 1; 
+				resetMinMax();
 				break;
 			
 			case MENU_ID_CURRENT:
@@ -478,6 +495,7 @@ void menu(){
 				selectedSettings = openManualCurrent();
 				selectedMenuID = selectedSettings.nextMenu;
 				autoRange = 0; 
+				resetMinMax();
 				break;
 			
 			case MENU_ID_CURRENT_AUTO_RANGE:
@@ -489,6 +507,7 @@ void menu(){
 
 				//to avoid in gettting the error state (idx = o of StateMenu struct)
 				selectedSettings.selectedRange = RANGE_ID_RANGE_1;
+				resetMinMax();
 				break;
 			
 			case MENU_ID_RESISTANCE:
@@ -500,10 +519,11 @@ void menu(){
 			case MENU_ID_RESISTANCE_MANUAL_RANGE:
 				//manual range for resistance
 				//go to select range menu
-				LED_Out(143);
+				LED_Out(135);
 				selectedSettings = openManualResistance();
 				selectedMenuID = selectedSettings.nextMenu;
-				autoRange = 0; 
+				autoRange = 0;
+				resetMinMax();
 				break;
 			
 			case MENU_ID_RESISTANCE_AUTO_RANGE:
@@ -512,22 +532,23 @@ void menu(){
 				LED_Out(0);
 				selectedMenuID = MENU_ID_MEASUREMENT;
 				autoRange = 1; 
+				resetMinMax();
 				break;
 			
 			case MENU_ID_RESISTANCE_CONTINUITY:
 				LED_Out(128);
 				selectedMenuID = continutiyMenu();
-				selectedSettings.selectedRange = RANGE_ID_RANGE_1mV; //go to continuity range
+				//selectedSettings.selectedRange = RANGE_ID_RANGE_1mV; //go to continuity range
 				break;
 			
 			case MENU_ID_MIN:
 				LED_Out(128);
-				selectedMenuID = openMinMenu();
+				selectedMenuID = openMinMenu(selectedSettings.selectedRange);
 				break;
 			
 			case MENU_ID_MAX:
 				LED_Out(128);
-				selectedMenuID = openMaxMenu();
+				selectedMenuID = openMaxMenu(selectedSettings.selectedRange);
 				break;
 			
 			case MENU_ID_COMPUTER_LINK:
@@ -762,7 +783,7 @@ MenuIds capacitanceMenu() {
 		double capacitance;
 		
 		capacitance = (1 / ( pow( ( 2 * PI * storedFreq), 2) * 0.033 ) ); 		
-		display_Measure("Capacitance", ' ', "", "F", capacitance);			
+		display_Measure("Capacitance", ' ', "", "F", capacitance, 4);			
 		
 		Delay(10000);
 
@@ -813,7 +834,8 @@ RangeIds autoRanging(RangeIds currentRange) {
 			break;
 		case MODE_RESISTANCE:
 			upperLimit = RANGE_ID_RANGE_10;
-			lowerLimit = RANGE_ID_RANGE_1mV;
+			//lowerLimit = RANGE_ID_RANGE_1mV; 
+			lowerLimit = RANGE_ID_RANGE_100m;
 			break; 
 	}
 
@@ -863,9 +885,6 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 	
 	int buttonPressed = -1;
 	
-	maximumValue = 0.0;
-	minimumValue = 10.0;
-	
 	//#define AVERAGING_SIZE 10
 	//int valueHistory[AVERAGING_SIZE] = {0};
 	//int averagingSamepleNum = 0;
@@ -873,9 +892,6 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 	unsigned int value; // Raw value measured from ADC (0-4096)
 	float actualValue; // Actual value being represented by the input (eg 100 mA)
 	
-	//set coupling
-	//GPIOC->ODR &= ~(0x2000);
-	//GPIOC->ODR |= (VOLTAGE_COUPLING_MODE << 13);
 	if (VOLTAGE_COUPLING_MODE == 1) {
 		GPIOC_SignalON(13);
 	} else {
@@ -892,6 +908,7 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 		
 		unsigned int rangeMode ;	//range Control signal.
 		unsigned int typeMode ; //Measurement type control signal (Eg. Are we measuring current?)
+		int decimalPlaces;
 		
 		buttonPressed = DelayForButton(300, buttonArray, size);
 		
@@ -912,6 +929,7 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 			rangeMode = currentState.rangeMode;
 			rangeString = currentState.rangeString;
 			units = currentState.unitString;
+			decimalPlaces = currentState.decimalPlaces;
 			
 			selectMode(typeMode , rangeMode);
 			
@@ -930,6 +948,7 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 			} */
 			
 			actualValue = retSignedValue(value, currentState.scalingFactor);
+			actualValue = roundToNDP(actualValue, decimalPlaces);
 			
 			if (actualValue > maximumValue) {
 				maximumValue = actualValue;
@@ -944,18 +963,18 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 				buzzerOn(500);
 			}				
 			
-			//turn buzzer on for continuit test
-	/*		if ( isContinuity == 1 ) {
-				if ( ( actualValue < 50 ) && (rangeMode == RANGE_ID_RANGE_1mV) ) {
-					buzzerOn(500);
-				}
-			}*/
+			char* newUnits = (char*)malloc(strlen(units)+strlen(" Pk-Pk")+1);
+			strcpy(newUnits, units);
+			
+			if(VOLTAGE_COUPLING_MODE == 1){
+				//If in AC mode then add P-P to the screen
+				strcat(newUnits, " Pk-Pk");
+			}
 			
 			//display meassurments on the LCD 
+			display_Measure(measurement, modeString, rangeString, newUnits, actualValue, decimalPlaces);	
 
-			display_Measure(measurement, modeString, rangeString, units, actualValue);	
-
-			
+			free(newUnits);
 			//Set which menu to return to if the menu button is pressed.
 			switch(MULTIMETER_MODE){
 				
@@ -989,4 +1008,13 @@ float retSignedValue(int readValue, float scalingFactor) {
 		retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maximInputVoltage);
 	} 	
 	return retValue;
+}
+
+float roundToNDP(float value, int n){
+	return roundf((value*pow(10, n))/pow(10, n));
+}
+
+void resetMinMax() {
+	maximumValue = FLT_MIN;
+	minimumValue = FLT_MAX;
 }

@@ -59,8 +59,8 @@ MenuIds signalGeneratorMenu(void);
 MenuIds capacitanceMenu(void);
 MenuIds inductanceMenu(void);
 MenuIds continutiyMenu(void);
-
-
-
+float roundToNDP(float value, int n);
+float retRoundedValue(float value, int range);
+void resetMinMax(void);
 
 #endif //__MENU_H

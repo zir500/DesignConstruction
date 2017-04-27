@@ -7,6 +7,7 @@ typedef struct {
   double scalingFactor;
   unsigned int typeMode; //MSB two bits of the control signal
   unsigned int rangeMode; //LSV two bits of the control signal
+  int decimalPlaces;
 } state;
 
 const state stateLookUp[10][10] = {
@@ -17,7 +18,8 @@ const state stateLookUp[10][10] = {
 			"10 V",
       20,
       0x2,
-      0x0
+      0x0, 
+	  2
     },
 		{//RANGE_1v
 			"Voltage",
@@ -25,7 +27,8 @@ const state stateLookUp[10][10] = {
 			"1 V",
       2,
       0x2,
-      0x1
+      0x1,
+	  3
     },
 		{//RANGE_100mv
 			"Voltage",
@@ -33,7 +36,8 @@ const state stateLookUp[10][10] = {
 			"100 mV",
       0.2*1000, //1000 facter to convert to milivolts
       0x2,
-      0x2
+      0x2,
+	  2
     },
 		{//RANGE_10mv
 			"Voltage",
@@ -41,7 +45,8 @@ const state stateLookUp[10][10] = {
 			"10 mV",
       0.02*1000,
       0x2,
-      0x3
+      0x3,
+	  3
     },
 		{//RANGE_1mv
 			"Voltage",
@@ -49,7 +54,8 @@ const state stateLookUp[10][10] = {
 			"1 mV",
       0.002*1000,
       0x2,
-      0x4
+      0x4,
+	  4
     },
   },
 	
@@ -60,7 +66,8 @@ const state stateLookUp[10][10] = {
 			"",
       0,
       0x3,
-      0x0
+      0x0,
+	  0
     },
 		{//RANGE_1A
 			"Current",
@@ -68,7 +75,8 @@ const state stateLookUp[10][10] = {
 			"1 A",
       2,
       0x1,
-      0x0
+      0x0,
+	  3
     },
 		{//RANGE_100mA
 			"Current",
@@ -76,7 +84,8 @@ const state stateLookUp[10][10] = {
 			"100 mA",
       0.2*1000,
       0x1,
-      0x1
+      0x1,
+	  2
     },
 		{//RANGE_1mA
 			"Current",
@@ -84,7 +93,8 @@ const state stateLookUp[10][10] = {
 			"10 mA",
       0.02*1000,
       0x1,
-      0x2
+      0x2,
+	  4
     },
   },
 	
@@ -95,7 +105,8 @@ const state stateLookUp[10][10] = {
 			"1 Mohm",
 			1,
 			0x0,
-			0x0
+			0x0,
+			2
 		},
 		{//RANGE 100kohm
 			"Resis",
@@ -103,31 +114,34 @@ const state stateLookUp[10][10] = {
 			"100 kohm",
 			100,
 			0x0,
-			0x1
+			0x1,
+			0
 		},
 		{//RANGE 10kohm
-			"Resist",
+			"Resis",
 			"kohm",
 			"10 kohm",
 			10,
 			0x0,
-			0x2
+			0x2,
+			1
 		},
-		{//RANGE 1kohm
+		/*{//RANGE 1kohm
 			"Resist",
 			"kohm",
 			"1 kohm",
 			1,
 			0x0,
 			0x3
-		}, 
+		}, */
 		{//RANGE continuity
 			"Continuity",
 			"ohms",
 			"",
 			450,
 			0x0,
-			0x4
+			0x4,
+			0
 		}
 	}
 };
