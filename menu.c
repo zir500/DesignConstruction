@@ -94,12 +94,12 @@ MenuIds openVoltageCouplingMenu(){
 RangeMenuSettings openManualVoltage() {
 
 	MULTIMETER_MODE = MODE_VOLTAGE;
-	int buttonArray[6] = {0,1,2,3,7};
-	int size = 6;
+	int buttonArray[5] = {0,1,2,3,7};
+	int size = 5;
 	
 	selectMode(0xF, 0xF);
 	
-	int buttonPressed = printAndWait("Voltage Manual", " 1.10V  2.1V  3.100mV 4.10mV ", buttonArray, size);
+	int buttonPressed = printAndWait("Voltage Manual", " 1.10V  2.1V  3.100mV ", buttonArray, size);
 	RangeMenuSettings selectedSettings;
 	selectedSettings.nextMenu = MENU_ID_MEASUREMENT;
 	selectedSettings.selectedRange = RANGE_ID_RANGE_10;
@@ -251,12 +251,12 @@ MenuIds continutiyMenu(){
 RangeMenuSettings openManualResistance() {
 	
 	MULTIMETER_MODE = MODE_RESISTANCE;
-	int buttonArray[5] = {0,1,2,3,7};
-	int size = 5;
+	int buttonArray[4] = {0,1,2,7};
+	int size = 4;
 	
 	selectMode(0xF, 0xF);
 	
-	int buttonPressed = printAndWait("Resistance Manual", "1.1MOhm 2.100kOhm 3.10kOhm 4.1kOhm ", buttonArray, size);
+	int buttonPressed = printAndWait("Resistance Manual", "1.1MOhm 2.100kOhm 3.10kOhm ", buttonArray, size);
 
 	RangeMenuSettings selectedSettings;
 	selectedSettings.nextMenu = MENU_ID_MEASUREMENT;
@@ -275,10 +275,10 @@ RangeMenuSettings openManualResistance() {
 			//manual range of 10kOhm
 			selectedSettings.selectedRange = RANGE_ID_RANGE_100m;
 			break;
-		case 3:
+		/*case 3:
 			//manual range of 1kOhm
 		  selectedSettings.selectedRange = RANGE_ID_RANGE_10m;
-			break; 
+			break; */
 		case 7:
 			selectedSettings.nextMenu = MENU_ID_RESISTANCE;
 			break;
@@ -503,7 +503,7 @@ void menu(){
 			case MENU_ID_RESISTANCE_MANUAL_RANGE:
 				//manual range for resistance
 				//go to select range menu
-				LED_Out(143);
+				LED_Out(135);
 				selectedSettings = openManualResistance();
 				selectedMenuID = selectedSettings.nextMenu;
 				autoRange = 0; 
@@ -808,7 +808,7 @@ RangeIds autoRanging(RangeIds currentRange) {
 		default:
 		case MODE_VOLTAGE:
 			upperLimit = RANGE_ID_RANGE_10;
-			lowerLimit = RANGE_ID_RANGE_1mV;
+			lowerLimit = RANGE_ID_RANGE_10m;
 			break;
 		case MODE_CURRENT:
 			upperLimit = RANGE_ID_RANGE_1;
@@ -816,7 +816,7 @@ RangeIds autoRanging(RangeIds currentRange) {
 			break;
 		case MODE_RESISTANCE:
 			upperLimit = RANGE_ID_RANGE_10;
-			lowerLimit = RANGE_ID_RANGE_1mV;
+			lowerLimit = RANGE_ID_RANGE_100m;
 			break; 
 	}
 
