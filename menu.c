@@ -13,6 +13,7 @@
 #include <string.h>
 #include "DDS.h"
 #include <math.h>
+#include <float.h>
 
 extern char RECIEVE_BUFFER[RECIEVE_BUFFER_SIZE];
 extern int bufferEmpty;
@@ -29,8 +30,8 @@ int VOLTAGE_COUPLING_MODE = 0; //0 for DC coupling, 1 for AC Coupling (matches c
 #define PI 3.141592653
 
 //const float maximInputVoltage = 2.91; // The input voltage which represents a maximum reading.
-float maximumValue = 0.0;
-float minimumValue = 10.0;
+float maximumValue = FLT_MIN;
+float minimumValue = FLT_MAX;
 
 
 void scrollText(char message[], int messageLength){
@@ -458,6 +459,8 @@ void menu(){
 				selectedSettings = openManualVoltage();	
 				selectedMenuID = selectedSettings.nextMenu;
 			  autoRange = 0; 
+				maximumValue = FLT_MIN;
+				minimumValue = FLT_MAX;
 				break;
 			
 			case MENU_ID_VOLTAGE_AUTO_RANGE:
@@ -481,6 +484,8 @@ void menu(){
 				selectedSettings = openManualCurrent();
 				selectedMenuID = selectedSettings.nextMenu;
 				autoRange = 0; 
+				maximumValue = FLT_MIN;
+				minimumValue = FLT_MAX;
 				break;
 			
 			case MENU_ID_CURRENT_AUTO_RANGE:
@@ -507,6 +512,8 @@ void menu(){
 				selectedSettings = openManualResistance();
 				selectedMenuID = selectedSettings.nextMenu;
 				autoRange = 0; 
+				maximumValue = FLT_MIN;
+				minimumValue = FLT_MAX;
 				break;
 			
 			case MENU_ID_RESISTANCE_AUTO_RANGE:
@@ -688,12 +695,14 @@ MenuIds capacitanceMenu() {
 
 	int buttonPressed = -1;
 	
+	long storedFreq = 0;
+
 	while( buttonPressed != 7 ){
 
 		buttonPressed = DelayForButton(100, buttonArray, size);
 		
 		long freq;
-		long maxFreq = 30000;
+		long maxFreq = 200;
 		
 		//set to sinWave
 		GPIOB_SignalOFF(15);
@@ -702,7 +711,6 @@ MenuIds capacitanceMenu() {
 		
 		unsigned int value; // Raw value measured from ADC (0-4096)
 	
-		long storedFreq;
 		int minValueRead = 5000;
 		
 		//set to resonance mode
@@ -711,13 +719,13 @@ MenuIds capacitanceMenu() {
 		int startRange = 0;
 				
 		char frqToWrite[16];
-		int incStepSize = 10;
+		int incStepSize = 1;
 		
 		//set voltage AC mode
 		GPIOC_SignalON(13);
 			
-		for (startRange=0; startRange<=4; startRange++) {
-			selectMode(2,startRange);
+	//	for (startRange=0; startRange<=4; startRange++) {
+			selectMode(2, RANGE_ID_RANGE_10);
 		
 			lcd_write_string("Measuring freq: ", 0, 0);
 
@@ -726,7 +734,7 @@ MenuIds capacitanceMenu() {
 				setFrequency(freq);
 				
 				//calculate and set delay
-				delay = (uint32_t) ( (1000.0/freq));
+				//delay = (uint32_t) ( (1000.0/freq));
 				Delay(250);
 				
 				value = read_ADC1();
@@ -740,9 +748,9 @@ MenuIds capacitanceMenu() {
 				
 				if ( (freq > 1000) && (freq < 5000) ) {
 					incStepSize = 100;
-				} else if (freq > 5000) {
+				} /*else if (freq > 5000) {
 					incStepSize = 1000;
-				} 
+				} */
 
 				//if peak detected stored the freq and the ADC value
 				if (value < minValueRead) {
@@ -750,16 +758,16 @@ MenuIds capacitanceMenu() {
 					storedFreq = freq;
 				}
 				
-				if ( (value - minValueRead > 500 ) || (value > 4090) ) {
+				/*if ( (value - minValueRead > 500 ) || (value > 4090) ) {
 					incStepSize = 10;
 					break;
-				}
+				} */
 				
 				sprintf(frqToWrite, "%ld-%u %d", freq, value, startRange);
 				lcd_write_string(frqToWrite, 1,0);
 			}
 			
-		}
+		
 		
 		lcd_clear_display();
 		double capacitance;
@@ -775,7 +783,8 @@ MenuIds capacitanceMenu() {
 		//set resonance off
 		GPIOC_SignalOFF(7);
 	
-	} 
+	//} 
+	}
 	
 	return MENU_ID_OPEN;
 }
@@ -865,9 +874,6 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 	char* measurement = "";
 	
 	int buttonPressed = -1;
-	
-	maximumValue = 0.0;
-	minimumValue = 10.0;
 	
 	//#define AVERAGING_SIZE 10
 	//int valueHistory[AVERAGING_SIZE] = {0};
