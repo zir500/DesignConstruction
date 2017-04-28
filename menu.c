@@ -18,7 +18,7 @@ extern char RECIEVE_BUFFER[RECIEVE_BUFFER_SIZE];
 extern int bufferEmpty;
 extern int numReceuives;
 
-#define ADC_VREF 3.0f
+#define ADC_VREF 2.955f
 
 int MULTIMETER_MODE = MODE_VOLTAGE;
 int VOLTAGE_COUPLING_MODE = 0; //0 for DC coupling, 1 for AC Coupling (matches control signals)
@@ -28,7 +28,7 @@ int VOLTAGE_COUPLING_MODE = 0; //0 for DC coupling, 1 for AC Coupling (matches c
 
 #define PI 3.141592653
 
-const float maximInputVoltage = 2.97; // The input voltage which represents a maximum reading.
+//const float maximInputVoltage = 2.91; // The input voltage which represents a maximum reading.
 float maximumValue = 0.0;
 float minimumValue = 10.0;
 
@@ -94,12 +94,12 @@ MenuIds openVoltageCouplingMenu(){
 RangeMenuSettings openManualVoltage() {
 
 	MULTIMETER_MODE = MODE_VOLTAGE;
-	int buttonArray[6] = {0,1,2,3,4,7};
+	int buttonArray[6] = {0,1,2,3,7};
 	int size = 6;
 	
 	selectMode(0xF, 0xF);
 	
-	int buttonPressed = printAndWait("Voltage Manual", " 1.10V  2.1V  3.100mV 4.10mV 5.1mV ", buttonArray, size);
+	int buttonPressed = printAndWait("Voltage Manual", " 1.10V  2.1V  3.100mV 4.10mV ", buttonArray, size);
 	RangeMenuSettings selectedSettings;
 	selectedSettings.nextMenu = MENU_ID_MEASUREMENT;
 	selectedSettings.selectedRange = RANGE_ID_RANGE_10;
@@ -121,10 +121,10 @@ RangeMenuSettings openManualVoltage() {
 			//manual range of 10 mV
 			selectedSettings.selectedRange = RANGE_ID_RANGE_10m;
 			break; 
-		case 4:
+		/*case 4:
 			//manual range of 1mV
 			selectedSettings.selectedRange = RANGE_ID_RANGE_1mV;
-			break;
+			break; */
 		case 7:
 			selectedSettings.nextMenu = MENU_ID_VOLTAGE;
 			break;
@@ -231,7 +231,10 @@ MenuIds continutiyMenu(){
 	int size = 1;					//Number of buttons to listen for.
 
 	int buttonPressed = -1;
-	lcd_write_string("Coontinuit test", 0 ,0);
+	lcd_write_string("Continuity test", 0 ,0);
+	
+	selectMode(0, 4);
+	
 	while( buttonPressed != 7 ){
 		buttonPressed = DelayForButton(100, buttonArray, size);
 		
@@ -876,6 +879,10 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 	//set coupling
 	//GPIOC->ODR &= ~(0x2000);
 	//GPIOC->ODR |= (VOLTAGE_COUPLING_MODE << 13);
+	
+	//used to displayed the square root in AC
+	float dummyFactor = 1;
+	
 	if (VOLTAGE_COUPLING_MODE == 1) {
 		GPIOC_SignalON(13);
 	} else {
@@ -891,8 +898,8 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 		char modeString = 'M';// Indicated which mode the multimeter is in (Auto-range or manual).
 		
 		unsigned int rangeMode ;	//range Control signal.
-		unsigned int typeMode ; //Measurement type control signal (Eg. Are we measuring current?)
-		
+		unsigned int typeMode ; //Measurement type control signal (Eg. Are we measuring current?)		
+		float maxInputVoltage;
 		buttonPressed = DelayForButton(300, buttonArray, size);
 		
 		if (buttonPressed == 6) { 
@@ -906,16 +913,25 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 				modeString = 'A';
 			}
 			
+			if (VOLTAGE_COUPLING_MODE == 1) {
+				dummyFactor = 0.3535;
+			} else {
+				dummyFactor = 1;
+			}
+			
 			state currentState = stateLookUp[MULTIMETER_MODE][range];
 			measurement = currentState.measurementString;
 			typeMode = currentState.typeMode;
 			rangeMode = currentState.rangeMode;
 			rangeString = currentState.rangeString;
 			units = currentState.unitString;
+			maxInputVoltage = currentState.maxInputVoltage;
 			
 			selectMode(typeMode , rangeMode);
 			
+			Delay(200);
 			value = read_ADC1();
+			
 			/*
 			valueHistory[averagingSamepleNum] = value;
 			if(averagingSamepleNum > AVERAGING_SIZE-1){
@@ -929,7 +945,13 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 				averageValue += valueHistory[j]/AVERAGING_SIZE;
 			} */
 			
-			actualValue = retSignedValue(value, currentState.scalingFactor);
+			printf(" %d \n", value);
+			
+			if (MULTIMETER_MODE == MODE_RESISTANCE) {
+				
+			}
+			
+			actualValue = retSignedValue(value, currentState.scalingFactor, maxInputVoltage) * (dummyFactor);
 			
 			if (actualValue > maximumValue) {
 				maximumValue = actualValue;
@@ -979,14 +1001,14 @@ MenuIds measurementMenu(int isAutoRangeOn, RangeIds range) {
 
 
 //Scales the adc reading to produce a meaningful measurement value.
-float retSignedValue(int readValue, float scalingFactor) { 
+float retSignedValue(int readValue, float scalingFactor, float maxInputVoltage) { 
 	float retValue;
 	//float maxUsableDivisions = (4096.0f/ADC_VREF) * maximInputVoltage;
 	
-	if ( (MULTIMETER_MODE == MODE_VOLTAGE) || (MULTIMETER_MODE == MODE_CURRENT) ) {
-		retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maximInputVoltage) - (scalingFactor/2.0f);
+	if ( (MULTIMETER_MODE == MODE_VOLTAGE || (MULTIMETER_MODE == MODE_CURRENT) ) ) {
+		retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maxInputVoltage) - (scalingFactor/2.0f);
 	} else {
-		retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maximInputVoltage);
+		retValue = (readValue * (ADC_VREF/4096.0f) * scalingFactor/maxInputVoltage);
 	} 	
 	return retValue;
 }

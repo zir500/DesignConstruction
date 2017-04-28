@@ -7,6 +7,7 @@ typedef struct {
   double scalingFactor;
   unsigned int typeMode; //MSB two bits of the control signal
   unsigned int rangeMode; //LSV two bits of the control signal
+  float maxInputVoltage;
 } state;
 
 const state stateLookUp[10][10] = {
@@ -17,7 +18,8 @@ const state stateLookUp[10][10] = {
 			"10 V",
       20,
       0x2,
-      0x0
+      0x0,
+	  2.91f
     },
 		{//RANGE_1v
 			"Voltage",
@@ -25,7 +27,8 @@ const state stateLookUp[10][10] = {
 			"1 V",
       2,
       0x2,
-      0x1
+      0x1,
+	  2.853f
     },
 		{//RANGE_100mv
 			"Voltage",
@@ -33,7 +36,8 @@ const state stateLookUp[10][10] = {
 			"100 mV",
       0.2*1000, //1000 facter to convert to milivolts
       0x2,
-      0x2
+      0x2,
+	  2.845f
     },
 		{//RANGE_10mv
 			"Voltage",
@@ -41,7 +45,8 @@ const state stateLookUp[10][10] = {
 			"10 mV",
       0.02*1000,
       0x2,
-      0x3
+      0x3,
+	  3.07f
     },
 		{//RANGE_1mv
 			"Voltage",
@@ -49,7 +54,8 @@ const state stateLookUp[10][10] = {
 			"1 mV",
       0.002*1000,
       0x2,
-      0x4
+      0x4,
+	  3.0f,
     },
   },
 	
@@ -68,7 +74,8 @@ const state stateLookUp[10][10] = {
 			"1 A",
       2,
       0x1,
-      0x0
+      0x0,
+	  2.91f,
     },
 		{//RANGE_100mA
 			"Current",
@@ -76,15 +83,17 @@ const state stateLookUp[10][10] = {
 			"100 mA",
       0.2*1000,
       0x1,
-      0x1
+      0x1,
+	  2.91f,
     },
-		{//RANGE_1mA
+		{//RANGE_10mA
 			"Current",
 			"mA",
 			"10 mA",
       0.02*1000,
       0x1,
-      0x2
+      0x2,
+	  2.93f,
     },
   },
 	
@@ -95,7 +104,8 @@ const state stateLookUp[10][10] = {
 			"1 Mohm",
 			1,
 			0x0,
-			0x0
+			0x0,
+			3.18f,
 		},
 		{//RANGE 100kohm
 			"Resis",
@@ -103,7 +113,8 @@ const state stateLookUp[10][10] = {
 			"100 kohm",
 			100,
 			0x0,
-			0x1
+			0x1,
+			3.03f,
 		},
 		{//RANGE 10kohm
 			"Resist",
@@ -111,7 +122,8 @@ const state stateLookUp[10][10] = {
 			"10 kohm",
 			10,
 			0x0,
-			0x2
+			0x2,
+			2.64f,
 		},
 		{//RANGE 1kohm
 			"Resist",
@@ -119,7 +131,8 @@ const state stateLookUp[10][10] = {
 			"1 kohm",
 			1,
 			0x0,
-			0x3
+			0x3,
+			2.91f,
 		}, 
 		{//RANGE continuity
 			"Continuity",
@@ -127,7 +140,8 @@ const state stateLookUp[10][10] = {
 			"",
 			450,
 			0x0,
-			0x4
+			0x4,
+			2.91f,
 		}
 	}
 };
